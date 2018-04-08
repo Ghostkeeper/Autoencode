@@ -52,10 +52,13 @@ def extract_mkv(in_mkv):
 					new_attachment.from_mkv(attachment_metadata)
 					new_attachment.file_name = guid + "A" + str(new_attachment.uid)
 					attachments.append(new_attachment)
+	return tracks, attachments
 
 try:
+	tracks = []
+	attachments = []
 	if extension == ".mkv":
-		extract_mkv(guid + ".mkv")
+		tracks, attachments = extract_mkv(guid + ".mkv")
 	else:
 		raise Exception("Unknown file extension: {extension}".format(extension=extension))
 finally:
