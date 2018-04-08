@@ -10,7 +10,7 @@ class Track:
 		self.uid = -1
 		self.type = ""
 		self.codec = ""
-		self.duration = 0.0
+		self.fps = 0.0
 		self.language = "und"
 		self.name = ""
 
@@ -79,7 +79,8 @@ class Track:
 					hours = int(hours)
 					minutes = int(minutes)
 					seconds = float(seconds)
-					self.duration = hours * 3600 + minutes * 60 + seconds
-					print("  Duration:", self.duration)
+					frame_duration = hours * 3600 + minutes * 60 + seconds
+					self.fps = 1.0 / frame_duration
+					print("  FPS:", self.fps)
 				except ValueError: #Too many or not enough values to unpack, or not ints/floats.
 					pass
