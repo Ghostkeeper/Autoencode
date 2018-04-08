@@ -32,8 +32,9 @@ def extract_mkv(in_mkv):
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0:
-		raise Exception("Calling MKVInfo failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
-	print(cout.decode("utf-8")) #Debug.
+		raise Exception("Calling MKVInfo failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr.decode("utf-8")))
+	mkvinfo = cout.decode("utf-8")
+	print(mkvinfo) #DEBUG.
 
 try:
 	if extension == ".mkv":
