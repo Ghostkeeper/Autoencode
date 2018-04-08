@@ -20,7 +20,7 @@ shutil.move(input_filename, guid + extension)
 if extension == ".mkv":
 	in_mkv = guid + ".mkv"
 	#Find the tracks and attachments in the MKV file.
-	process = subprocess.Popen(["mkvinfo", in_mkv], stdout=PIPE)
+	process = subprocess.Popen(["mkvinfo", in_mkv], stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0:
