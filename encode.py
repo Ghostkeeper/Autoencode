@@ -50,6 +50,7 @@ def extract_mkv(in_mkv):
 				for attachment_metadata in segment_item.split("| + Attached")[1:]:
 					new_attachment = attachment.Attachment()
 					new_attachment.from_mkv(attachment_metadata)
+					new_attachment.file_name = guid + "A" + str(new_attachment.uid)
 					attachments.append(new_attachment)
 
 try:

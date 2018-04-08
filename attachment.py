@@ -9,6 +9,7 @@ class Attachment:
 		self.internal_name = ""
 		self.mime = ""
 		self.uid = -1
+		self.file_name = "" #Where the attachment is extracted to.
 
 	def from_mkv(self, mkv_attachment):
 		print("Parsing attachment:")
