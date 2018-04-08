@@ -44,14 +44,14 @@ class Track:
 						print("  Track Nr:", self.track_nr)
 					except ValueError: #Not properly formatted for int().
 						pass
-			if line.startswith("Track UID: "):
+			elif line.startswith("Track UID: "):
 				line = line[len("Track UID: "):]
 				try:
 					self.uid = int(line)
 					print("  UID:", self.uid)
 				except ValueError: #Not an integer.
 					pass
-			if line.startswith("Track type: "):
+			elif line.startswith("Track type: "):
 				line = line[len("Track type: "):]
 				type_translation = {
 					"video": "video",
@@ -61,7 +61,7 @@ class Track:
 				if line in type_translation:
 					self.type = type_translation[line]
 					print("  Type:", self.type)
-			if line.startswith("Codec ID: "):
+			elif line.startswith("Codec ID: "):
 				line = line[len("Codec ID: "):]
 				codec_translation = {
 					"A_FLAC": "flac",
@@ -71,7 +71,7 @@ class Track:
 				if line in codec_translation:
 					self.codec = codec_translation[line]
 					print("  Codec:", self.codec)
-			if line.startswith("Default duration: "):
+			elif line.startswith("Default duration: "):
 				line = line[len("Default duration: "):]
 				line = line[:line.find(" ")]
 				try:
@@ -84,7 +84,7 @@ class Track:
 					print("  FPS:", self.fps)
 				except ValueError: #Too many or not enough values to unpack, or not ints/floats.
 					pass
-			if line.startswith("Language: "):
+			elif line.startswith("Language: "):
 				line = line[len("Language: "):]
 				language_translation = {
 					"und": "",
@@ -94,32 +94,32 @@ class Track:
 				if line in language_translation:
 					self.language = language_translation[line]
 					print("  Language:", self.language)
-			if line.startswith("Name: "):
+			elif line.startswith("Name: "):
 				line = line[len("Name: "):]
 				self.name = line
 				print("  Name:", self.name)
-			if line.startswith("Pixel width: "):
+			elif line.startswith("Pixel width: "):
 				line = line[len("Pixel width: "):]
 				try:
 					self.pixel_width = int(line)
 					print("  Pixel width:", self.pixel_width)
 				except ValueError: #Not an integer.
 					pass
-			if line.startswith("Pixel height: "):
+			elif line.startswith("Pixel height: "):
 				line = line[len("Pixel height: "):]
 				try:
 					self.pixel_height = int(line)
 					print("  Pixel height:", self.pixel_height)
 				except ValueError: #Not an integer.
 					pass
-			if line.startswith("Display width: "):
+			elif line.startswith("Display width: "):
 				line = line[len("Display width: "):]
 				try:
 					self.display_width = int(line)
 					print("  Display width:", self.display_width)
 				except ValueError: #Not an integer.
 					pass
-			if line.startswith("Display height: "):
+			elif line.startswith("Display height: "):
 				line = line[len("Display height: "):]
 				try:
 					self.display_height = int(line)
