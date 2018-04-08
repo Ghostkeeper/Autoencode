@@ -51,3 +51,13 @@ class Track:
 					print("  UID:", self.uid)
 				except TypeError: #Not an integer.
 					pass
+			if line.startswith("Track type: "):
+				line = line[len("Track type: "):]
+				type_translation = {
+					"video": "video",
+					"audio": "audio",
+					"subtitles": "subtitle"
+				}
+				if line in type_translation:
+					self.type = type_translation[line]
+					print("  Type:", self.type)
