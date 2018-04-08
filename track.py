@@ -44,3 +44,10 @@ class Track:
 						print("  Track Nr:", self.track_nr)
 					except TypeError: #Not properly formatted for int().
 						pass
+			if line.startswith("Track UID: "):
+				line = line[len("Track UID: "):]
+				try:
+					self.uid = int(line)
+					print("  UID:", self.uid)
+				except TypeError: #Not an integer.
+					pass
