@@ -11,7 +11,7 @@ class Track:
 		self.type = ""
 		self.codec = ""
 		self.fps = 0.0
-		self.language = "und"
+		self.language = ""
 		self.name = ""
 
 		#Video properties.
@@ -84,3 +84,13 @@ class Track:
 					print("  FPS:", self.fps)
 				except ValueError: #Too many or not enough values to unpack, or not ints/floats.
 					pass
+			if line.startswith("Language: "):
+				line = line[len("Language: "):]
+				language_translation = {
+					"und": "",
+					"eng": "en_US",
+					"jpn": "ja_JP"
+				}
+				if line in language_translation:
+					self.language = language_translation[line]
+					print("  Language:", self.language)
