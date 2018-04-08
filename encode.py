@@ -52,6 +52,17 @@ def extract_mkv(in_mkv):
 					new_attachment.from_mkv(attachment_metadata)
 					new_attachment.file_name = guid + "A" + str(new_attachment.uid)
 					attachments.append(new_attachment)
+
+	#Generate the parameters to pass to mkvextract.
+	track_params = []
+	for track_metadata in tracks:
+		track_params.append(str(track_metadata.track_nr) + ":" + track_metadata.file_name)
+	track_params = " ".join(track_params)
+	attachment_params = []
+	for attachment_metadata in attachments:
+		attachment_params.append(str(attachment_metadata.uid) + ":" + attachment_metadata.file_name)
+	attachment_params = " ".join(attachment_params)
+
 	return tracks, attachments
 
 try:
