@@ -133,3 +133,10 @@ class Track:
 					print("  Frequency:", self.frequency)
 				except ValueError: #Not an integer.
 					pass
+			elif line.startswith("Channels: "):
+				line = line[len("Channels: "):]
+				try:
+					self.channels = int(line)
+					print("  Channels:", self.channels)
+				except ValueError: #Not an integer.
+					pass
