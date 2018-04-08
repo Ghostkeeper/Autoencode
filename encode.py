@@ -33,7 +33,7 @@ def extract_mkv(in_mkv):
 	process = subprocess.Popen(["mkvinfo", in_mkv], stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
-	if exit_code != 0:
+	if exit_code != 0: #0 is success.
 		raise Exception("Calling MKVInfo failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr.decode("utf-8")))
 	mkvinfo = cout.decode("utf-8")
 	tracks = []
@@ -58,11 +58,23 @@ def extract_mkv(in_mkv):
 	track_params = []
 	for track_metadata in tracks:
 		track_params.append(str(track_metadata.track_nr) + ":" + track_metadata.file_name)
-	track_params = " ".join(track_params)
 	attachment_params = []
 	for attachment_metadata in attachments:
-		attachment_params.append(str(attachment_metadata.uid) + ":" + attachment_metadata.file_name)
-	attachment_params = " ".join(attachment_params)
+		attachment_params.append(str(attachment_metadata.aid) + ":" + attachment_metadata.file_name)
+
+	#Extract all tracks and attachments.
+	print("Extacting tracks...")
+	process = subprocess.Popen(["mkvextract", in_mkv, "tracks"] + track_params, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0 and exit_code != 1: #0 is success. 1 is warnings.
+		raise Exception("Calling MKVExtract on tracks failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+	print("Extracting attachments...")
+	process = subprocess.Popen(["mkvextract", in_mkv, "attachments"] + attachment_params, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0 and exit_code != 1: #0 is success. 1 is warnings.
+		raise Exception("Calling MKVExtract on attachments failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
 	return tracks, attachments
 
