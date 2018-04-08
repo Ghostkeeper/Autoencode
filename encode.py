@@ -34,7 +34,12 @@ def extract_mkv(in_mkv):
 	if exit_code != 0:
 		raise Exception("Calling MKVInfo failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr.decode("utf-8")))
 	mkvinfo = cout.decode("utf-8")
-	print(mkvinfo) #DEBUG.
+	for segment in mkvinfo.split("+ Segment:")[1:]:
+		for segment_item in segment.split("|+ ")[1:]:
+			if segment_item.startswith("Tracks"):
+				print("Found tracks:", segment_item)
+			if segment_item.startswith("Attachments"):
+				print("Found attachments:", segment_item)
 
 try:
 	if extension == ".mkv":
