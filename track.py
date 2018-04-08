@@ -13,6 +13,7 @@ class Track:
 		self.fps = 0.0
 		self.language = ""
 		self.name = ""
+		self.file_name = "" #Where the track is extracted to.
 
 		#Video properties.
 		self.pixel_width = 0
