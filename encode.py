@@ -88,12 +88,34 @@ def extract_mkv(in_mkv):
 
 	return tracks, attachments
 
+def encode_flac(track_metadata):
+	new_file_name = track_metadata.file_name + ".opus"
+	process = subprocess.Popen(["opusenc", "--bitrate", "96", "--vbr", "--comp", "10", "--framesize", "60", track_metadata.file_name, new_file_name], stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0: #0 is success.
+		raise Exception("OpusEnc failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
+
+	#Delete old file.
+	os.remove(track_metadata.file_name)
+
+	track_metadata.file_name = new_file_name
+	track_metadata.codec = "opus"
+
 try:
+	#Demuxing.
 	tracks = []
 	attachments = []
 	if extension == ".mkv":
 		tracks, attachments = extract_mkv(guid + ".mkv")
 	else:
 		raise Exception("Unknown file extension: {extension}".format(extension=extension))
+
+	#Encoding.
+	for track_metadata in tracks:
+		if track_metadata.codec == "flac":
+			encode_flac(track_metadata)
+		else:
+			print("Unknown codec:", track_metadata.codec)
 finally:
 	clean(tracks, attachments) #Clean up after any mistakes.
