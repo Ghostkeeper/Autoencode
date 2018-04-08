@@ -28,3 +28,10 @@ class Attachment:
 				line = line[len("MIME type: "):]
 				self.mime = line
 				print("  MIME type:", self.mime)
+			elif line.startswith("File UID: "):
+				line = line[len("File UID: "):]
+				try:
+					self.uid = int(line)
+					print("  UID:", self.uid)
+				except ValueError: #Not an integer.
+					pass
