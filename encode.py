@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse #To parse command line arguments.
+import os #To delete files as clean-up.
 import os.path #To parse file names (used for file type detection).
 import shutil #To move files.
 import subprocess #To call the encoders and muxers.
@@ -20,13 +21,22 @@ guid = uuid.uuid4().hex #A new file name that is almost guaranteed to not exist 
 extension = os.path.splitext(input_filename)[1]
 shutil.move(input_filename, guid + extension)
 
-def clean():
+def clean(tracks = [], attachments = []):
 	"""Cleans up the changes we made after everything is done."""
 	try:
 		shutil.move(guid + extension, input_filename)
 	except Exception as e:
-		print(e)
-		pass #Can't recover, but continue with the rest of the clean-up.
+		print(e) #Can't recover, but continue with the rest of the clean-up.
+	for track_metadata in tracks:
+		try:
+			os.remove(track_metadata.file_name)
+		except Exception as e:
+			print(e)
+	for attachment_metadata in attachments:
+		try:
+			os.remove(attachment_metadata.file_name)
+		except Exception as e:
+			print(e)
 
 def extract_mkv(in_mkv):
 	#Find all tracks and attachments in the MKV file.
@@ -86,4 +96,4 @@ try:
 	else:
 		raise Exception("Unknown file extension: {extension}".format(extension=extension))
 finally:
-	clean() #Clean up after any mistakes.
+	clean(tracks, attachments) #Clean up after any mistakes.
