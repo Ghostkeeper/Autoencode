@@ -108,3 +108,17 @@ class Track:
 					print("  Pixel height:", self.pixel_height)
 				except ValueError: #Not an integer.
 					pass
+			if line.startswith("Display width: "):
+				line = line[len("Display width: "):]
+				try:
+					self.display_width = int(line)
+					print("  Display width:", self.display_width)
+				except ValueError: #Not an integer.
+					pass
+			if line.startswith("Display height: "):
+				line = line[len("Display height: "):]
+				try:
+					self.display_height = int(line)
+					print("  Display height:", self.display_height)
+				except ValueError: #Not an integer.
+					pass
