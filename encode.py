@@ -28,5 +28,3 @@ if extension == ".mkv":
 	print(cout) #Debug.
 else:
 	raise Exception("Unknown file extension: {extension}".format(extension=extension))
-
-shutil.move(input_filename, guid + extension)
