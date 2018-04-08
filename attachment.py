@@ -24,3 +24,7 @@ class Attachment:
 				line = line[len("File name: "):]
 				self.internal_name = line
 				print("  Internal name:", self.internal_name)
+			elif line.startswith("MIME type: "):
+				line = line[len("MIME type: "):]
+				self.mime = line
+				print("  MIME type:", self.mime)
