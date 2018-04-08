@@ -94,6 +94,10 @@ class Track:
 				if line in language_translation:
 					self.language = language_translation[line]
 					print("  Language:", self.language)
+			if line.startswith("Name: "):
+				line = line[len("Name: "):]
+				self.name = line
+				print("  Name:", self.name)
 			if line.startswith("Pixel width: "):
 				line = line[len("Pixel width: "):]
 				try:
