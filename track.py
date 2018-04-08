@@ -94,3 +94,17 @@ class Track:
 				if line in language_translation:
 					self.language = language_translation[line]
 					print("  Language:", self.language)
+			if line.startswith("Pixel width: "):
+				line = line[len("Pixel width: "):]
+				try:
+					self.pixel_width = int(line)
+					print("  Pixel width:", self.pixel_width)
+				except ValueError: #Not an integer.
+					pass
+			if line.startswith("Pixel height: "):
+				line = line[len("Pixel height: "):]
+				try:
+					self.pixel_height = int(line)
+					print("  Pixel height:", self.pixel_height)
+				except ValueError: #Not an integer.
+					pass
