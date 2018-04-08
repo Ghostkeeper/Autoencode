@@ -24,7 +24,7 @@ if extension == ".mkv":
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0:
-		raise Exception("Calling MKVInfo failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr)
+		raise Exception("Calling MKVInfo failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
 	print(cout) #Debug.
 else:
 	raise Exception("Unknown file extension: {extension}".format(extension=extension))
