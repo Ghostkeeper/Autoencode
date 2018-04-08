@@ -6,6 +6,7 @@ import shutil #To move files.
 import subprocess #To call the encoders and muxers.
 import uuid #To rename files to something that doesn't exist yet.
 
+import track #To demux tracks.
 
 parser = argparse.ArgumentParser(description="Re-encode videos.")
 parser.add_argument("input_filename", metavar="input", type=str, help="The input file name to encode.")
@@ -34,14 +35,17 @@ def extract_mkv(in_mkv):
 	if exit_code != 0:
 		raise Exception("Calling MKVInfo failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr.decode("utf-8")))
 	mkvinfo = cout.decode("utf-8")
+	tracks = []
 	for segment in mkvinfo.split("+ Segment:")[1:]:
 		for segment_item in segment.split("|+ ")[1:]:
 			if segment_item.startswith("Tracks"):
-				for track in segment_item.split("| + Track")[1:]:
-					print("Found track:", track)
+				for track_metadata in segment_item.split("| + Track")[1:]:
+					new_track = track.Track()
+					new_track.from_mkv(track_metadata)
+					tracks.append(new_track)
 			if segment_item.startswith("Attachments"):
-				for attachment in segment_item.split("| + Attached")[1:]:
-					print("Found attachment:", attachment)
+				for attachment_metadata in segment_item.split("| + Attached")[1:]:
+					print("Found attachment:", attachment_metadata)
 
 try:
 	if extension == ".mkv":
