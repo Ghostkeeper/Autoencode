@@ -42,14 +42,14 @@ class Track:
 					try:
 						self.track_nr = int(line)
 						print("  Track Nr:", self.track_nr)
-					except TypeError: #Not properly formatted for int().
+					except ValueError: #Not properly formatted for int().
 						pass
 			if line.startswith("Track UID: "):
 				line = line[len("Track UID: "):]
 				try:
 					self.uid = int(line)
 					print("  UID:", self.uid)
-				except TypeError: #Not an integer.
+				except ValueError: #Not an integer.
 					pass
 			if line.startswith("Track type: "):
 				line = line[len("Track type: "):]
@@ -71,3 +71,15 @@ class Track:
 				if line in codec_translation:
 					self.codec = codec_translation[line]
 					print("  Codec:", self.codec)
+			if line.startswith("Default duration: "):
+				line = line[len("Default duration: "):]
+				line = line[:line.find(" ")]
+				try:
+					hours, minutes, seconds = line.split(":")
+					hours = int(hours)
+					minutes = int(minutes)
+					seconds = float(seconds)
+					self.duration = hours * 3600 + minutes * 60 + seconds
+					print("  Duration:", self.duration)
+				except ValueError: #Too many or not enough values to unpack, or not ints/floats.
+					pass
