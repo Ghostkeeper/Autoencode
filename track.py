@@ -61,3 +61,13 @@ class Track:
 				if line in type_translation:
 					self.type = type_translation[line]
 					print("  Type:", self.type)
+			if line.startswith("Codec ID: "):
+				line = line[len("Codec ID: "):]
+				codec_translation = {
+					"A_FLAC": "flac",
+					"S_TEXT/ASS": "ass",
+					"V_MPEG4/ISO/AVC": "h264"
+				}
+				if line in codec_translation:
+					self.codec = codec_translation[line]
+					print("  Codec:", self.codec)
