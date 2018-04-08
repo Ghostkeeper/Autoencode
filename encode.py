@@ -44,13 +44,13 @@ def extract_mkv(in_mkv):
 				for track_metadata in segment_item.split("| + Track")[1:]:
 					new_track = track.Track()
 					new_track.from_mkv(track_metadata)
-					new_track.file_name = guid + "T" + str(new_track.track_nr)
+					new_track.file_name = guid + "-T" + str(new_track.track_nr)
 					tracks.append(new_track)
 			if segment_item.startswith("Attachments"):
 				for attachment_metadata in segment_item.split("| + Attached")[1:]:
 					new_attachment = attachment.Attachment()
 					new_attachment.from_mkv(attachment_metadata)
-					new_attachment.file_name = guid + "A" + str(new_attachment.uid)
+					new_attachment.file_name = guid + "-A" + str(new_attachment.uid)
 					attachments.append(new_attachment)
 
 	#Generate the parameters to pass to mkvextract.
