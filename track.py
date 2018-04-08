@@ -140,3 +140,10 @@ class Track:
 					print("  Channels:", self.channels)
 				except ValueError: #Not an integer.
 					pass
+			elif line.startswith("Bit depth: "):
+				line = line[len("Bit depth: "):]
+				try:
+					self.bit_depth = int(line)
+					print("  Bit depth:", self.bit_depth)
+				except ValueError: #Not an integer.
+					pass
