@@ -37,9 +37,11 @@ def extract_mkv(in_mkv):
 	for segment in mkvinfo.split("+ Segment:")[1:]:
 		for segment_item in segment.split("|+ ")[1:]:
 			if segment_item.startswith("Tracks"):
-				print("Found tracks:", segment_item)
+				for track in segment_item.split("| + Track")[1:]:
+					print("Found track:", track)
 			if segment_item.startswith("Attachments"):
-				print("Found attachments:", segment_item)
+				for attachment in segment_item.split("| + Attached")[1:]:
+					print("Found attachment:", attachment)
 
 try:
 	if extension == ".mkv":
