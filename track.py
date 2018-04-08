@@ -126,3 +126,10 @@ class Track:
 					print("  Display height:", self.display_height)
 				except ValueError: #Not an integer.
 					pass
+			elif line.startswith("Sampling frequency: "):
+				line = line[len("Sampling frequency: "):]
+				try:
+					self.frequency = int(line)
+					print("  Frequency:", self.frequency)
+				except ValueError: #Not an integer.
+					pass
