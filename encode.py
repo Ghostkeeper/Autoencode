@@ -103,8 +103,6 @@ def encode_flac(track_metadata):
 	track_metadata.codec = "opus"
 
 def encode_h264(track_metadata):
-	old_file = track_metadata.file_name + ".264"
-	shutil.move(track_metadata.file_name, old_file)
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
@@ -114,7 +112,7 @@ def encode_h264(track_metadata):
 	#Generate VapourSynth script.
 	with open(os.path.join(os.path.split(__file__)[0], "hdanime.vpy")) as f:
 		script = f.read()
-	script = script.format(input_file=old_file)
+	script = script.format(input_file=track_metadata.file_name)
 	with open(vapoursynth_script, "w") as f:
 		f.write(script)
 
