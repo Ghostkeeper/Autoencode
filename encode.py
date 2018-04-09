@@ -103,18 +103,34 @@ def encode_flac(track_metadata):
 	track_metadata.codec = "opus"
 
 def encode_h264(track_metadata):
+	old_file = track_metadata.file_name + ".264"
+	shutil.move(track_metadata.file_name, old_file)
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
+	#yum_file = track_metadata.file_name + ".yum"
+	yum_file = "-"
 
-	#TODO: Generate VapourSynth script.
+	#Generate VapourSynth script.
+	with open(os.path.join(os.path.split(__file__)[0], "hdanime.vpy")) as f:
+		script = f.read()
+	script = script.format(input_file=old_file)
+	with open(vapoursynth_script, "w") as f:
+		f.write(script)
 
-	command = "vspipe --y4m " + vapoursynth_script + " - | ~/encoding/x265/build/x265 --preset 9 --bitrate 1000 --deblock 1:1 -b 12 --psy-rd 0.4 --aq-strength 0.5 --pass 1 --stats " + stats_file + " -o /dev/null -"
-	process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+	vspipe_command = ["vspipe", "--y4m", vapoursynth_script, yum_file]
+	#process = subprocess.Popen(vspipe_command, stdout=subprocess.PIPE)
+	#(cout, cerr) = process.communicate()
+	#exit_code = process.wait()
+	#if exit_code != 0: #0 is success.
+	#	raise Exception("VSPipe failed with an exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr.decode("utf-8")))
+	x265_command = ["/home/ruben/encoding/x265/build/x265", yum_file, "--fps", str(track_metadata.fps), "--input-res", str(track_metadata.pixel_width) + "x" + str(track_metadata.pixel_height), "--preset", "9", "--bitrate", "1000", "--deblock", "1:1", "-b", "12", "--psy-rd", "0.4", "--aq-strength", "0.5", "--pass", "1", "--stats", stats_file, "-o", "/dev/null"]
+	#process = subprocess.Popen(x265_command, stdout=subprocess.PIPE)
+	process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command), shell=True)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0: #0 is success.
-		raise Exception("x265 failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
+		raise Exception("x265 failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
 	#Delete old file.
 	#os.remove(track_metadata.file_name)
