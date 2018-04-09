@@ -102,6 +102,21 @@ def encode_flac(track_metadata):
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "opus"
 
+def encode_h264(track_metadata):
+	new_file_name = track_metadata.file_name + ".265"
+	stats_file = track_metadata.file_name + ".stats"
+	process = subprocess.Popen(["/home/ruben/encoding/x265/build/x265", "--preset", "9", "--bitrate", "1000", "--deblock", "1:1", "-b", "12", "--psy-rd", "0.4", "--aq-strength", "0.5", "--pass", "1", "--stats", stats_file, "-o", "/dev/null", track_metadata.file_name], stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0: #0 is success.
+		raise Exception("x265 failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
+
+	#Delete old file.
+	#os.remove(track_metadata.file_name)
+
+	#track_metadata.file_name = new_file_name
+	#track_metadata.codec = "h265"
+
 try:
 	#Demuxing.
 	tracks = []
@@ -115,6 +130,8 @@ try:
 	for track_metadata in tracks:
 		if track_metadata.codec == "flac":
 			encode_flac(track_metadata)
+		elif track_metadata.codec == "h264":
+			encode_h264(track_metadata)
 		else:
 			print("Unknown codec:", track_metadata.codec)
 finally:
