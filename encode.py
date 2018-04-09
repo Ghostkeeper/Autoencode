@@ -106,8 +106,6 @@ def encode_h264(track_metadata):
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
-	#yum_file = track_metadata.file_name + ".yum"
-	yum_file = "-"
 
 	#Generate VapourSynth script.
 	with open(os.path.join(os.path.split(__file__)[0], "hdanime.vpy")) as f:
@@ -116,10 +114,10 @@ def encode_h264(track_metadata):
 	with open(vapoursynth_script, "w") as f:
 		f.write(script)
 
-	vspipe_command = ["vspipe", "--y4m", vapoursynth_script, yum_file]
+	vspipe_command = ["vspipe", "--y4m", vapoursynth_script, "-"]
 	x265_command = [
 		"/home/ruben/encoding/x265/build/x265",
-		yum_file,
+		"-",
 		"--fps", str(track_metadata.fps),
 		"--input-res", str(track_metadata.pixel_width) + "x" + str(track_metadata.pixel_height),
 		"--preset", "9",
