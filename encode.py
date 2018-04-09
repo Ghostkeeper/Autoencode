@@ -117,18 +117,19 @@ def encode_h264(track_metadata):
 		f.write(script)
 
 	vspipe_command = ["vspipe", "--y4m", vapoursynth_script, yum_file]
-	#process = subprocess.Popen(vspipe_command, stdout=subprocess.PIPE)
-	#(cout, cerr) = process.communicate()
-	#exit_code = process.wait()
-	#if exit_code != 0: #0 is success.
-	#	raise Exception("VSPipe failed with an exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr.decode("utf-8")))
-	x265_command = ["/home/ruben/encoding/x265/build/x265", yum_file, "--fps", str(track_metadata.fps), "--input-res", str(track_metadata.pixel_width) + "x" + str(track_metadata.pixel_height), "--preset", "9", "--bitrate", "1000", "--deblock", "1:1", "-b", "12", "--psy-rd", "0.4", "--aq-strength", "0.5", "--pass", "1", "--stats", stats_file, "-o", "/dev/null"]
-	#process = subprocess.Popen(x265_command, stdout=subprocess.PIPE)
-	process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command), shell=True)
+	x265_command = ["/home/ruben/encoding/x265/build/x265", yum_file, "--fps", str(track_metadata.fps), "--input-res", str(track_metadata.pixel_width) + "x" + str(track_metadata.pixel_height), "--preset", "9", "--bitrate", "1000", "--deblock", "1:1", "-b", "12", "--psy-rd", "0.4", "--aq-strength", "0.5", "--stats", stats_file]
+	x265_pass1 = ["--pass", "1", "-o", "/dev/null"]
+	x265_pass2 = ["--pass", "2", "-o", new_file_name]
+	process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass1), shell=True)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0: #0 is success.
-		raise Exception("x265 failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+		raise Exception("First x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+	process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass2), shell=True)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0: #0 is success.
+		raise Exception("Second x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exitcode, cerr=cout.decode("utf-8")))
 
 	#Delete old file.
 	#os.remove(track_metadata.file_name)
