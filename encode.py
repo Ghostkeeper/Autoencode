@@ -115,45 +115,46 @@ def encode_h264(track_metadata):
 	]
 
 	#Generate VapourSynth script.
-	with open(os.path.join(os.path.split(__file__)[0], "hdanime.vpy")) as f:
-		script = f.read()
-	script = script.format(input_file=track_metadata.file_name)
-	with open(vapoursynth_script, "w") as f:
-		f.write(script)
+	try:
+		with open(os.path.join(os.path.split(__file__)[0], "hdanime.vpy")) as f:
+			script = f.read()
+		script = script.format(input_file=track_metadata.file_name)
+		with open(vapoursynth_script, "w") as f:
+			f.write(script)
 
-	vspipe_command = ["vspipe", "--y4m", vapoursynth_script, "-"]
-	x265_command = [
-		"/home/ruben/encoding/x265/build/x265",
-		"-",
-		"--fps", str(track_metadata.fps),
-		"--input-res", str(track_metadata.pixel_width) + "x" + str(track_metadata.pixel_height),
-		"--preset", "9",
-		"--bitrate", "800",
-		"--deblock", "1:1",
-		"-b", "12",
-		"--psy-rd", "0.4",
-		"--aq-strength", "0.5",
-		"--stats", stats_file
-	]
-	x265_pass1 = ["--pass", "1", "-o", "/dev/null"]
-	x265_pass2 = ["--pass", "2", "-o", new_file_name]
-	process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass1), shell=True)
-	(cout, cerr) = process.communicate()
-	exit_code = process.wait()
-	if exit_code != 0: #0 is success.
-		raise Exception("First x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
-	process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass2), shell=True)
-	(cout, cerr) = process.communicate()
-	exit_code = process.wait()
-	if exit_code != 0: #0 is success.
-		raise Exception("Second x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exitcode, cerr=cout.decode("utf-8")))
-
-	#Delete old files and temporaries.
-	os.remove(track_metadata.file_name)
-	os.remove(stats_file)
-	os.remove(vapoursynth_script)
-	for file in sideeffect_files:
-		os.remove(file)
+		vspipe_command = ["vspipe", "--y4m", vapoursynth_script, "-"]
+		x265_command = [
+			"/home/ruben/encoding/x265/build/x265",
+			"-",
+			"--fps", str(track_metadata.fps),
+			"--input-res", str(track_metadata.pixel_width) + "x" + str(track_metadata.pixel_height),
+			"--preset", "9",
+			"--bitrate", "800",
+			"--deblock", "1:1",
+			"-b", "12",
+			"--psy-rd", "0.4",
+			"--aq-strength", "0.5",
+			"--stats", stats_file
+		]
+		x265_pass1 = ["--pass", "1", "-o", "/dev/null"]
+		x265_pass2 = ["--pass", "2", "-o", new_file_name]
+		process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass1), shell=True)
+		(cout, cerr) = process.communicate()
+		exit_code = process.wait()
+		if exit_code != 0: #0 is success.
+			raise Exception("First x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+		process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass2), shell=True)
+		(cout, cerr) = process.communicate()
+		exit_code = process.wait()
+		if exit_code != 0: #0 is success.
+			raise Exception("Second x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exitcode, cerr=cout.decode("utf-8")))
+	finally:
+		#Delete old files and temporaries.
+		os.remove(track_metadata.file_name)
+		os.remove(stats_file)
+		os.remove(vapoursynth_script)
+		for file in sideeffect_files:
+			os.remove(file)
 
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "h265"
