@@ -105,7 +105,12 @@ def encode_flac(track_metadata):
 def encode_h264(track_metadata):
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
-	process = subprocess.Popen(["/home/ruben/encoding/x265/build/x265", "--preset", "9", "--bitrate", "1000", "--deblock", "1:1", "-b", "12", "--psy-rd", "0.4", "--aq-strength", "0.5", "--pass", "1", "--stats", stats_file, "-o", "/dev/null", track_metadata.file_name], stdout=subprocess.PIPE)
+	vapoursynth_script = track_metadata.file_name + ".vpy"
+
+	#TODO: Generate VapourSynth script.
+
+	command = "vspipe --y4m " + vapoursynth_script + " - | ~/encoding/x265/build/x265 --preset 9 --bitrate 1000 --deblock 1:1 -b 12 --psy-rd 0.4 --aq-strength 0.5 --pass 1 --stats " + stats_file + " -o /dev/null -"
+	process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0: #0 is success.
