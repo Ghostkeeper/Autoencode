@@ -106,6 +106,13 @@ def encode_h264(track_metadata):
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
+	#The encoding process produces some side effects that may need cleaning up.
+	#Some are normally cleaned up but if the encoding is interrupted, be sure to delete them anyway.
+	sideeffect_files = [
+		track_metadata.file_name + ".stats.cutree.temp",
+		track_metadata.file_name + ".stats.temp",
+		track_metadata.file_name + ".ffindex"
+	]
 
 	#Generate VapourSynth script.
 	with open(os.path.join(os.path.split(__file__)[0], "hdanime.vpy")) as f:
@@ -121,7 +128,7 @@ def encode_h264(track_metadata):
 		"--fps", str(track_metadata.fps),
 		"--input-res", str(track_metadata.pixel_width) + "x" + str(track_metadata.pixel_height),
 		"--preset", "9",
-		"--bitrate", "1000",
+		"--bitrate", "800",
 		"--deblock", "1:1",
 		"-b", "12",
 		"--psy-rd", "0.4",
@@ -141,11 +148,15 @@ def encode_h264(track_metadata):
 	if exit_code != 0: #0 is success.
 		raise Exception("Second x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exitcode, cerr=cout.decode("utf-8")))
 
-	#Delete old file.
-	#os.remove(track_metadata.file_name)
+	#Delete old files and temporaries.
+	os.remove(track_metadata.file_name)
+	os.remove(stats_file)
+	os.remove(vapoursynth_script)
+	for file in sideeffect_files:
+		os.remove(file)
 
-	#track_metadata.file_name = new_file_name
-	#track_metadata.codec = "h265"
+	track_metadata.file_name = new_file_name
+	track_metadata.codec = "h265"
 
 try:
 	#Demuxing.
