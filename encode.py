@@ -100,7 +100,8 @@ def encode_flac(track_metadata):
 		raise Exception("OpusEnc failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
 
 	#Delete old file.
-	os.remove(track_metadata.file_name)
+	if os.path.exists(track_metadata.file_name):
+		os.remove(track_metadata.file_name)
 
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "opus"
@@ -155,11 +156,9 @@ def encode_h264(track_metadata):
 			raise Exception("Second x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exitcode, cerr=cout.decode("utf-8")))
 	finally:
 		#Delete old files and temporaries.
-		os.remove(track_metadata.file_name)
-		os.remove(stats_file)
-		os.remove(vapoursynth_script)
-		for file in sideeffect_files:
-			os.remove(file)
+		for file_name in [track_metadata.file_name, stats_file, vapoursynth_script] + sideeffect_files:
+			if os.path.exists(file_name):
+				os.remove(file_name)
 
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "h265"
