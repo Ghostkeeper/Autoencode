@@ -12,6 +12,7 @@ import track #To demux tracks.
 
 parser = argparse.ArgumentParser(description="Re-encode videos.")
 parser.add_argument("input_filename", metavar="input", type=str, help="The input file name to encode.")
+parser.add_argument("output_filename", metavar="output", type=str, help="The output file name to write to.")
 parser.add_argument("--preset", dest="preset", type=str, help="Preset for encoding. Must be one of: 'sd', 'hd', 'animated'")
 args = parser.parse_args()
 input_filename = args.input_filename
@@ -162,7 +163,7 @@ def encode_h265(track_metadata):
 			"-",
 			"--y4m",
 			"--fps", str(track_metadata.fps),
-			"--preset", "9",
+			"--preset", "4",
 			"--bitrate", "800",
 			"--deblock", "1:1",
 			"-b", "12",
@@ -260,7 +261,6 @@ try:
 
 	#Muxing.
 	mux_mkv(tracks, attachments)
-	output_filename = os.path.splitext(input_filename)[0] + "-out.mkv"
-	shutil.move(guid + "-out.mkv", output_filename)
+	shutil.move(guid + "-out.mkv", args.output_filename)
 finally:
 	clean(tracks, attachments) #Clean up after any mistakes.
