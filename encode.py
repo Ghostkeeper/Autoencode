@@ -92,6 +92,22 @@ def extract_mkv(in_mkv):
 
 	return tracks, attachments
 
+def encode_flac(track_metadata):
+	"""Encodes an audio file to the FLAC codec.
+	This is sometimes used as an intermediary step when the opusenc codec doesn't support the audio file.
+	Accepts any codec that FFmpeg supports (which is a lot)."""
+	print("Encoding", track_metadata.file_name, "to FLAC...")
+	new_file_name = track_metadata.file_name + ".flac"
+	ffmpeg_command = ["ffmpeg", "-i", track_metadata.file_name, "-f", "flac", new_file_name]
+	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0: #0 is success.
+		raise Exception("Calling FFmpeg failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr.decode("utf-8")))
+
+	track_metadata.file_name = new_file_name
+	track_metadata.codec = "flac"
+
 def encode_opus(track_metadata):
 	"""Encodes an audio file to the Opus codec.
 	Accepted input codecs:
