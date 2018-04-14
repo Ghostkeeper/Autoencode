@@ -81,7 +81,8 @@ def extract_mkv(in_mkv):
 	if exit_code != 0 and exit_code != 1: #0 is success. 1 is warnings.
 		raise Exception("Calling MKVExtract on tracks failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 	print("Extracting attachments...")
-	process = subprocess.Popen(["mkvextract", in_mkv, "attachments"] + attachment_params, stdout=subprocess.PIPE)
+	extract_params = ["mkvextract", in_mkv "attachments"] + attachment_params
+	process = subprocess.Popen(extract_params, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0 and exit_code != 1: #0 is success. 1 is warnings.
