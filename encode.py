@@ -18,6 +18,10 @@ args = parser.parse_args()
 input_filename = args.input_filename
 preset = args.preset
 
+print("===============AUTOENCODE===============")
+print("==== INPUT:", input_filename)
+print("==== OUTPUT: ", args.output_filename)
+
 guid = uuid.uuid4().hex #A new file name that is almost guaranteed to not exist yet.
 extension = os.path.splitext(input_filename)[1]
 shutil.move(input_filename, guid + extension)
