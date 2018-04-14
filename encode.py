@@ -148,12 +148,12 @@ def encode_h264(track_metadata):
 		(cout, cerr) = process.communicate()
 		exit_code = process.wait()
 		if exit_code != 0: #0 is success.
-			raise Exception("First x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+			raise Exception("First x265 pass failed with exit code {exit_code}.".format(exit_code=exit_code))
 		process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass2), shell=True)
 		(cout, cerr) = process.communicate()
 		exit_code = process.wait()
 		if exit_code != 0: #0 is success.
-			raise Exception("Second x265 pass failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exitcode, cerr=cout.decode("utf-8")))
+			raise Exception("Second x265 pass failed with exit code {exit_code}.".format(exit_code=exit_code))
 	finally:
 		#Delete old files and temporaries.
 		for file_name in [track_metadata.file_name, stats_file, vapoursynth_script] + sideeffect_files:
