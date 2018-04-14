@@ -251,7 +251,10 @@ try:
 		if track_metadata.codec == "flac":
 			encode_opus(track_metadata)
 		elif track_metadata.codec == "aac":
+			original_filename = track_metadata.file_name
 			encode_flac(track_metadata)
+			if os.path.exists(original_filename):
+				os.remove(original_filename)
 			encode_opus(track_metadata)
 		elif track_metadata.codec == "h264":
 			encode_h265(track_metadata)
