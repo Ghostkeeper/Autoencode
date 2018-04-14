@@ -92,6 +92,7 @@ def extract_mkv(in_mkv):
 	return tracks, attachments
 
 def encode_flac(track_metadata):
+	print("Encoding", track_metadata.file_name, "to OPUS...")
 	new_file_name = track_metadata.file_name + ".opus"
 	process = subprocess.Popen(["opusenc", "--bitrate", "96", "--vbr", "--comp", "10", "--framesize", "60", track_metadata.file_name, new_file_name], stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
@@ -107,6 +108,7 @@ def encode_flac(track_metadata):
 	track_metadata.codec = "opus"
 
 def encode_h264(track_metadata):
+	print("Encoding", track_metadata.file_name, "to H265...")
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
