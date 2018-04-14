@@ -74,7 +74,8 @@ def extract_mkv(in_mkv):
 
 	#Extract all tracks and attachments.
 	print("Extacting tracks...")
-	process = subprocess.Popen(["mkvextract", in_mkv, "tracks"] + track_params, stdout=subprocess.PIPE)
+	extract_params = ["mkvextract", in_mkv, "tracks"] + track_params
+	process = subprocess.Popen(extract_params, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0 and exit_code != 1: #0 is success. 1 is warnings.
