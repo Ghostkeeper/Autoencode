@@ -132,8 +132,8 @@ def encode_h264(track_metadata):
 		x265_command = [
 			"/home/ruben/encoding/x265/build/x265",
 			"-",
+			"--y4m",
 			"--fps", str(track_metadata.fps),
-			"--input-res", str(track_metadata.pixel_width) + "x" + str(track_metadata.pixel_height),
 			"--preset", "9",
 			"--bitrate", "800",
 			"--deblock", "1:1",
