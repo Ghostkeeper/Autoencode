@@ -163,6 +163,43 @@ def encode_h264(track_metadata):
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "h265"
 
+def mux_mkv(tracks, attachments):
+	new_file_name = guid + "-out.mkv"
+
+	mux_command = ["mkvmerge", "-o", new_file_name]
+
+	track_id = 0
+	for track_metadata in tracks:
+		if track_metadata.type == "video":
+			pass
+		elif track_metadata.type == "audio":
+			pass
+		elif track_metadata.type == "subtitle":
+			mux_command.append("--compression")
+			mux_command.append(str(track_id) + ":zlib")
+		else:
+			raise Exception("Unknown track type '{track_type}'".format(track_type = track_metadata.type))
+
+		mux_command.append("--language")
+		language_translation = { #Translate language codes to ISO639-2 format for MKVMerge.
+			"": "und",
+			"en_US": "eng",
+			"ja_JP": "jpn"
+		}
+		mux_command.append(str(track_id) + ":" + language_translation[track_metadata.language]) #Gives KeyError if languages translation is incomplete.
+		mux_command.append(track_metadata.file_name)
+
+		track_id += 1
+
+	print("Muxing...")
+	process = subprocess.Popen(mux_command, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0 and exit_code != 1: #0 is success. 1 is warnings.
+		raise Exception("Calling MKVMerge failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+	if exit_code == 1:
+		print("MKVMerge warning:", cout.decode("utf-8"))
+
 try:
 	#Demuxing.
 	tracks = []
@@ -180,5 +217,8 @@ try:
 			encode_h264(track_metadata)
 		else:
 			print("Unknown codec:", track_metadata.codec)
+
+	#Muxing.
+	mux_mkv(tracks, attachments)
 finally:
 	clean(tracks, attachments) #Clean up after any mistakes.
