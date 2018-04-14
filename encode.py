@@ -39,6 +39,7 @@ def clean(tracks = [], attachments = []):
 			print(e)
 
 def extract_mkv(in_mkv):
+	"""Extracts an MKV file into its components."""
 	#Find all tracks and attachments in the MKV file.
 	process = subprocess.Popen(["mkvinfo", in_mkv], stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
@@ -92,7 +93,14 @@ def extract_mkv(in_mkv):
 	return tracks, attachments
 
 def encode_opus(track_metadata):
-	print("Encoding", track_metadata.file_name, "to OPUS...")
+	"""Encodes an audio file to the Opus codec.
+	Accepted input codecs:
+	- Wave
+	- AIFF
+	- FLAC
+	- Ogg/FLAC
+	- PCM"""
+	print("Encoding", track_metadata.file_name, "to Opus...")
 	new_file_name = track_metadata.file_name + ".opus"
 	process = subprocess.Popen(["opusenc", "--bitrate", "96", "--vbr", "--comp", "10", "--framesize", "60", track_metadata.file_name, new_file_name], stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
@@ -108,6 +116,8 @@ def encode_opus(track_metadata):
 	track_metadata.codec = "opus"
 
 def encode_h265(track_metadata):
+	"""Encodes a video file to the H265 codec.
+	Accepts any codec that FFmpeg supports (which is a lot)."""
 	print("Encoding", track_metadata.file_name, "to H265...")
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
