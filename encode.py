@@ -194,6 +194,12 @@ def mux_mkv(tracks, attachments):
 
 		track_id += 1
 
+	for attachment_metadata in attachments:
+		mux_command.append("--attachment-mime-type")
+		mux_command.append(attachment_metadata.mime)
+		mux_command.append("--attach-file")
+		mux_command.append(attachment_metadata.file_name)
+
 	print("Muxing...")
 	process = subprocess.Popen(mux_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
