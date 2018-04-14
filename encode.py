@@ -220,5 +220,7 @@ try:
 
 	#Muxing.
 	mux_mkv(tracks, attachments)
+	output_filename = os.path.splitext(input_filename)[0] + "-out.mkv"
+	shutil.move(guid + "-out.mkv", output_filename)
 finally:
 	clean(tracks, attachments) #Clean up after any mistakes.
