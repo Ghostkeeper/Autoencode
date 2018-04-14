@@ -167,6 +167,9 @@ def mux_mkv(tracks, attachments):
 	new_file_name = guid + "-out.mkv"
 
 	mux_command = ["mkvmerge", "-o", new_file_name]
+	title = os.path.splitext(os.path.split(input_filename)[1])[0]
+	mux_command.append("--title")
+	mux_command.append(title)
 
 	track_id = 0
 	for track_metadata in tracks:
