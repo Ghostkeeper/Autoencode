@@ -65,6 +65,7 @@ class Track:
 			elif line.startswith("Codec ID: "):
 				line = line[len("Codec ID: "):]
 				codec_translation = {
+					"A_AAC": "aac",
 					"A_FLAC": "flac",
 					"S_TEXT/ASS": "ass",
 					"V_MPEG4/ISO/AVC": "h264"

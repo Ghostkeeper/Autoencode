@@ -250,6 +250,9 @@ try:
 	for track_metadata in tracks:
 		if track_metadata.codec == "flac":
 			encode_opus(track_metadata)
+		elif track_metadata.codec == "aac":
+			encode_flac(track_metadata)
+			encode_opus(track_metadata)
 		elif track_metadata.codec == "h264":
 			encode_h265(track_metadata)
 		else:
