@@ -111,7 +111,7 @@ def encode_h264(track_metadata):
 	sideeffect_files = [
 		track_metadata.file_name + ".stats.cutree.temp",
 		track_metadata.file_name + ".stats.temp",
-		track_metadata.file_name + ".ffindex"
+		track_metadata.file_name + ".ffindex",
 		track_metadata.file_name + ".stats.cutree",
 		track_metadata.file_name + ".stats"
 	]
