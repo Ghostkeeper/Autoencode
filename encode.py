@@ -199,7 +199,6 @@ def mux_mkv(tracks, attachments):
 	mux_command.append("--title")
 	mux_command.append(title)
 
-	track_id = 0
 	for track_metadata in tracks:
 		if track_metadata.type == "video":
 			pass
@@ -207,7 +206,7 @@ def mux_mkv(tracks, attachments):
 			pass
 		elif track_metadata.type == "subtitle":
 			mux_command.append("--compression")
-			mux_command.append(str(track_id) + ":zlib")
+			mux_command.append(str(track_metadata.track_nr) + ":zlib")
 		else:
 			raise Exception("Unknown track type '{track_type}'".format(track_type = track_metadata.type))
 
@@ -217,10 +216,8 @@ def mux_mkv(tracks, attachments):
 			"en_US": "eng",
 			"ja_JP": "jpn"
 		}
-		mux_command.append(str(track_id) + ":" + language_translation[track_metadata.language]) #Gives KeyError if languages translation is incomplete.
+		mux_command.append(str(track_metadata.track_nr) + ":" + language_translation[track_metadata.language]) #Gives KeyError if languages translation is incomplete.
 		mux_command.append(track_metadata.file_name)
-
-		track_id += 1
 
 	for attachment_metadata in attachments:
 		mux_command.append("--attachment-mime-type")
