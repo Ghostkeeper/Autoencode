@@ -213,8 +213,16 @@ def mux_mkv(tracks, attachments):
 		mux_command.append("--language")
 		language_translation = { #Translate language codes to ISO639-2 format for MKVMerge.
 			"": "und",
+			"en_GB": "eng",
 			"en_US": "eng",
-			"ja_JP": "jpn"
+			"es_ES": "spa",
+			"fr_FR": "fra",
+			"ja_JP": "jpn",
+			"ko_KO": "kor",
+			"nl_NL": "dut",
+			"th_TH": "tha",
+			"zh_CH": "zho",
+			"zh_TW": "zho"
 		}
 		mux_command.append(str(track_metadata.track_nr) + ":" + language_translation[track_metadata.language]) #Gives KeyError if languages translation is incomplete.
 		mux_command.append(track_metadata.file_name)
