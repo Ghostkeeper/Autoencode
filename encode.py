@@ -148,7 +148,7 @@ def encode_h265(track_metadata):
 		},
 		"uhd": {
 			"preset": "7",
-			"bitrate": "2500",
+			"bitrate": "3500",
 			"deblock": "1:1"
 		}
 	}
