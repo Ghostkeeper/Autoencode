@@ -139,7 +139,7 @@ def encode_h265(track_metadata):
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
 
-	h265_presets = {
+	x265_presets = {
 		"hdanime": {
 			"preset": "8",
 			"bitrate": "800",
@@ -177,9 +177,9 @@ def encode_h265(track_metadata):
 			"-",
 			"--y4m",
 			"--fps", str(track_metadata.fps),
-			"--preset", h265_presets[preset]["preset"],
-			"--bitrate", h265_presets[preset]["bitrate"],
-			"--deblock", h265_presets[preset]["deblock"],
+			"--preset", x265_presets[preset]["preset"],
+			"--bitrate", x265_presets[preset]["bitrate"],
+			"--deblock", x265_presets[preset]["deblock"],
 			"-b", "12",
 			"--psy-rd", "0.4",
 			"--aq-strength", "0.5",
