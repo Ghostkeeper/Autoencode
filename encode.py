@@ -149,8 +149,9 @@ def encode_h265(track_metadata):
 	]
 
 	#Generate VapourSynth script.
+	script_source = preset + ".vpy"
 	try:
-		with open(os.path.join(os.path.split(__file__)[0], "hdanime.vpy")) as f:
+		with open(os.path.join(os.path.split(__file__)[0], script_source)) as f:
 			script = f.read()
 		script = script.format(input_file=track_metadata.file_name)
 		with open(vapoursynth_script, "w") as f:
