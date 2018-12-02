@@ -75,7 +75,7 @@ def extract_mkv(in_mkv):
 		attachment_params.append(str(attachment_metadata.aid) + ":" + attachment_metadata.file_name)
 
 	#Extract all tracks and attachments.
-	print("Extacting tracks...")
+	print("---- Extacting tracks...")
 	extract_params = ["mkvextract", in_mkv, "tracks"] + track_params
 	process = subprocess.Popen(extract_params, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
@@ -97,7 +97,7 @@ def encode_flac(track_metadata):
 	"""Encodes an audio file to the FLAC codec.
 	This is sometimes used as an intermediary step when the opusenc codec doesn't support the audio file.
 	Accepts any codec that FFmpeg supports (which is a lot)."""
-	print("Encoding", track_metadata.file_name, "to FLAC...")
+	print("---- Encoding", track_metadata.file_name, "to FLAC...")
 	new_file_name = track_metadata.file_name + ".flac"
 	ffmpeg_command = ["ffmpeg", "-i", track_metadata.file_name, "-f", "flac", new_file_name]
 	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE)
@@ -117,7 +117,7 @@ def encode_opus(track_metadata):
 	- FLAC
 	- Ogg/FLAC
 	- PCM"""
-	print("Encoding", track_metadata.file_name, "to Opus...")
+	print("---- Encoding", track_metadata.file_name, "to Opus...")
 	new_file_name = track_metadata.file_name + ".opus"
 	process = subprocess.Popen(["opusenc", "--bitrate", "96", "--vbr", "--comp", "10", "--framesize", "60", track_metadata.file_name, new_file_name], stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
@@ -135,7 +135,7 @@ def encode_opus(track_metadata):
 def encode_h265(track_metadata):
 	"""Encodes a video file to the H265 codec.
 	Accepts any codec that FFmpeg supports (which is a lot)."""
-	print("Encoding", track_metadata.file_name, "to H265...")
+	print("---- Encoding", track_metadata.file_name, "to H265...")
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
@@ -249,7 +249,7 @@ def mux_mkv(tracks, attachments):
 		mux_command.append("--attach-file")
 		mux_command.append(attachment_metadata.file_name)
 
-	print("Muxing...")
+	print("---- Muxing...")
 	process = subprocess.Popen(mux_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
