@@ -138,6 +138,20 @@ def encode_h265(track_metadata):
 	new_file_name = track_metadata.file_name + ".265"
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
+
+	h265_presets = {
+		"hdanime": {
+			"preset": "8",
+			"bitrate": "800",
+			"deblock": "1:1"
+		},
+		"uhd": {
+			"preset": "7",
+			"bitrate": "2500",
+			"deblock": "1:1"
+		}
+	}
+
 	#The encoding process produces some side effects that may need cleaning up.
 	#Some are normally cleaned up but if the encoding is interrupted, be sure to delete them anyway.
 	sideeffect_files = [
@@ -163,9 +177,9 @@ def encode_h265(track_metadata):
 			"-",
 			"--y4m",
 			"--fps", str(track_metadata.fps),
-			"--preset", "8",
-			"--bitrate", "800",
-			"--deblock", "1:1",
+			"--preset", h265_presets[preset]["preset"],
+			"--bitrate", h265_presets[preset]["bitrate"],
+			"--deblock", h265_presets[preset]["deblock"],
 			"-b", "12",
 			"--psy-rd", "0.4",
 			"--aq-strength", "0.5",
