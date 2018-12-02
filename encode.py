@@ -20,7 +20,8 @@ preset = args.preset
 
 print("===============AUTOENCODE===============")
 print("==== INPUT:", input_filename)
-print("==== OUTPUT: ", args.output_filename)
+print("==== OUTPUT:", args.output_filename)
+print("==== PRESET:", preset)
 
 guid = uuid.uuid4().hex #A new file name that is almost guaranteed to not exist yet.
 extension = os.path.splitext(input_filename)[1]
