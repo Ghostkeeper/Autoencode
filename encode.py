@@ -13,7 +13,7 @@ import track #To demux tracks.
 parser = argparse.ArgumentParser(description="Re-encode videos.")
 parser.add_argument("input_filename", metavar="input", type=str, help="The input file name to encode.")
 parser.add_argument("output_filename", metavar="output", type=str, help="The output file name to write to.")
-parser.add_argument("--preset", dest="preset", type=str, help="Preset for encoding. Must be one of: 'sd', 'hd', 'animated'")
+parser.add_argument("--preset", dest="preset", type=str, help="Preset for encoding. Must be one of: 'hdanime', 'uhd'")
 args = parser.parse_args()
 input_filename = args.input_filename
 preset = args.preset
