@@ -27,7 +27,7 @@ class Track:
 		self.bit_depth = 0
 
 	def from_mkv(self, mkv_track):
-		print("Parsing track:")
+		print("---- Parsing track:")
 		for line in mkv_track.split("\n"):
 			if line.startswith("|"):
 				line = line[1:]
@@ -68,7 +68,9 @@ class Track:
 					"A_AAC": "aac",
 					"A_FLAC": "flac",
 					"S_TEXT/ASS": "ass",
-					"V_MPEG4/ISO/AVC": "h264"
+					"S_TEXT/UTF8": "srt",
+					"V_MPEG4/ISO/AVC": "h264",
+					"V_MPEGH/ISO/HEVC": "h265"
 				}
 				if line in codec_translation:
 					self.codec = codec_translation[line]

@@ -277,7 +277,7 @@ try:
 			if os.path.exists(original_filename):
 				os.remove(original_filename)
 			encode_opus(track_metadata)
-		elif track_metadata.codec == "h264":
+		elif track_metadata.codec == "h264" or track_metadata.codec == "h265":
 			encode_h265(track_metadata)
 		else:
 			print("Unknown codec:", track_metadata.codec)
