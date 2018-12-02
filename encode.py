@@ -174,7 +174,7 @@ def encode_h265(track_metadata):
 
 		vspipe_command = ["vspipe", "--y4m", vapoursynth_script, "-"]
 		x265_command = [
-			"/home/ruben/encoding/x265/build/x265",
+			"/home/ruben/encoding/x265/build2/x265",
 			"-",
 			"--y4m",
 			"--fps", str(track_metadata.fps),
