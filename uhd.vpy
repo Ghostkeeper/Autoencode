@@ -3,7 +3,11 @@
 #VapourSynth script tuned for 4K live-action video.
 
 import vapoursynth
+import havsfunc
 
 video = vapoursynth.core.ffms2.Source(source="{input_file}")
-#TODO: For now this is a completely transparent frame serving.
+
+video = havsfunc.Deblock_QED(video)
+video = havsfunc.MCTemporalDenoise(video, settings="very low")
+
 video.set_output()
