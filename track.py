@@ -92,8 +92,13 @@ class Track:
 				line = line[len("Language: "):]
 				language_translation = {
 					"und": "",
+					"chi": "zh_CN",
 					"eng": "en_US",
-					"jpn": "ja_JP"
+					"fre": "fr_FR",
+					"jpn": "ja_JP",
+					"kor": "ko_KO",
+					"spa": "es_ES",
+					"tha": "th_TH"
 				}
 				if line in language_translation:
 					self.language = language_translation[line]
