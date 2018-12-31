@@ -17,6 +17,8 @@ parser.add_argument("--preset", dest="preset", type=str, help="Preset for encodi
 args = parser.parse_args()
 input_filename = args.input_filename
 preset = args.preset
+if not preset:
+	preset = os.path.basename(os.path.dirname(input_filename))
 
 print("===============AUTOENCODE===============")
 print("==== INPUT:", input_filename)
