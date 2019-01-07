@@ -239,7 +239,7 @@ def mux_mkv(tracks, attachments):
 			"ko_KO": "kor",
 			"nl_NL": "dut",
 			"th_TH": "tha",
-			"zh_CH": "zho",
+			"zh_CN": "zho",
 			"zh_TW": "zho"
 		}
 		mux_command.append(str(track_metadata.track_nr) + ":" + language_translation[track_metadata.language]) #Gives KeyError if languages translation is incomplete.
