@@ -19,6 +19,8 @@ input_filename = args.input_filename
 preset = args.preset
 if not preset:
 	preset = os.path.basename(os.path.dirname(input_filename))
+if preset == "output":
+	return #This file is in the output folder. Ignore it.
 
 print("===============AUTOENCODE===============")
 print("==== INPUT:", input_filename)
