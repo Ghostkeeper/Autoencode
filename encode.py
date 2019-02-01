@@ -275,7 +275,7 @@ try:
 	for track_metadata in tracks:
 		if track_metadata.codec == "flac":
 			encode_opus(track_metadata)
-		elif track_metadata.codec == "aac":
+		elif track_metadata.codec == "aac" or track_metadata.codec == "truehd":
 			original_filename = track_metadata.file_name
 			encode_flac(track_metadata)
 			if os.path.exists(original_filename):

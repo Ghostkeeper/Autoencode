@@ -67,6 +67,7 @@ class Track:
 				codec_translation = {
 					"A_AAC": "aac",
 					"A_FLAC": "flac",
+					"A_TRUEHD": "truehd",
 					"S_TEXT/ASS": "ass",
 					"S_TEXT/UTF8": "srt",
 					"V_MPEG4/ISO/AVC": "h264",
