@@ -56,10 +56,10 @@ def extract_mkv(in_mkv):
 	mkvinfo = cout.decode("utf-8")
 	tracks = []
 	attachments = []
-	for segment in mkvinfo.split("+ Segment:")[1:]:
+	for segment in mkvinfo.split("+ Segment, size")[1:]:
 		for segment_item in segment.split("|+ ")[1:]:
-			if segment_item.startswith("Tracks"):
-				for track_metadata in segment_item.split("| + Track")[1:]:
+			if segment_item.startswith("Segment tracks"):
+				for track_metadata in segment_item.split("| + A track")[1:]:
 					new_track = track.Track()
 					new_track.from_mkv(track_metadata)
 					new_track.file_name = guid + "-T" + str(new_track.track_nr)
