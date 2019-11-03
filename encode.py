@@ -46,7 +46,9 @@ def clean(tracks = [], attachments = []):
 def extract_mkv(in_mkv):
 	"""Extracts an MKV file into its components."""
 	#Find all tracks and attachments in the MKV file.
-	process = subprocess.Popen(["mkvinfo", in_mkv], stdout=subprocess.PIPE)
+	mkvinfo_command = ["mkvinfo", in_mkv]
+	print(mkvinfo_command)
+	process = subprocess.Popen(mkvinfo_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0: #0 is success.
@@ -81,6 +83,7 @@ def extract_mkv(in_mkv):
 	#Extract all tracks and attachments.
 	print("---- Extacting tracks...")
 	extract_params = ["mkvextract", in_mkv, "tracks"] + track_params
+	print(extract_params)
 	process = subprocess.Popen(extract_params, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
@@ -89,6 +92,7 @@ def extract_mkv(in_mkv):
 	if attachment_params: #Only extract attachments if there are attachments.
 		print("Extracting attachments...")
 		extract_params = ["mkvextract", in_mkv, "attachments"] + attachment_params
+		print(extract_params)
 		process = subprocess.Popen(extract_params, stdout=subprocess.PIPE)
 		(cout, cerr) = process.communicate()
 		exit_code = process.wait()
@@ -104,6 +108,7 @@ def encode_flac(track_metadata):
 	print("---- Encoding", track_metadata.file_name, "to FLAC...")
 	new_file_name = track_metadata.file_name + ".flac"
 	ffmpeg_command = ["ffmpeg", "-i", track_metadata.file_name, "-f", "flac", new_file_name]
+	print(ffmpeg_command)
 	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
@@ -123,7 +128,9 @@ def encode_opus(track_metadata):
 	- PCM"""
 	print("---- Encoding", track_metadata.file_name, "to Opus...")
 	new_file_name = track_metadata.file_name + ".opus"
-	process = subprocess.Popen(["opusenc", "--bitrate", "96", "--vbr", "--comp", "10", "--framesize", "60", track_metadata.file_name, new_file_name], stdout=subprocess.PIPE)
+	opusenc_command = ["opusenc", "--bitrate", "96", "--vbr", "--comp", "10", "--framesize", "60", track_metadata.file_name, new_file_name]
+	print(opusenc_command)
+	process = subprocess.Popen(opusenc_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0: #0 is success.
@@ -192,12 +199,16 @@ def encode_h265(track_metadata):
 		]
 		x265_pass1 = ["--pass", "1", "-o", "/dev/null"]
 		x265_pass2 = ["--pass", "2", "-o", new_file_name]
-		process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass1), shell=True)
+		pass1_command = " ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass1)
+		print(pass1_command)
+		process = subprocess.Popen(pass1_command, shell=True)
 		(cout, cerr) = process.communicate()
 		exit_code = process.wait()
 		if exit_code != 0: #0 is success.
 			raise Exception("First x265 pass failed with exit code {exit_code}.".format(exit_code=exit_code))
-		process = subprocess.Popen(" ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass2), shell=True)
+		pass2_command = " ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass2)
+		print(pass2_command)
+		process = subprocess.Popen(pass2_command, shell=True)
 		(cout, cerr) = process.communicate()
 		exit_code = process.wait()
 		if exit_code != 0: #0 is success.
@@ -254,6 +265,7 @@ def mux_mkv(tracks, attachments):
 		mux_command.append(attachment_metadata.file_name)
 
 	print("---- Muxing...")
+	print(mux_command)
 	process = subprocess.Popen(mux_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
