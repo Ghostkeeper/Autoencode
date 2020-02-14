@@ -18,7 +18,7 @@ args = parser.parse_args()
 input_filename = args.input_filename
 preset = args.preset
 if not preset:
-	preset = os.path.basename(os.path.dirname(input_filename))
+	preset = input_filename.split("/")[0]
 if preset == "output":
 	exit() #This file is in the output folder. Ignore it.
 
