@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse #To parse command line arguments.
+import errno #To recognise OS errors.
 import os #To delete files as clean-up.
 import os.path #To parse file names (used for file type detection).
 import shutil #To move files.
@@ -16,15 +17,27 @@ parser.add_argument("output_filename", metavar="output", type=str, help="The out
 parser.add_argument("--preset", dest="preset", type=str, help="Preset for encoding. Must be one of: 'hdanime', 'uhd'")
 args = parser.parse_args()
 input_filename = args.input_filename
+output_filename = args.output_filename
 preset = args.preset
 if not preset:
 	preset = input_filename.split("/")[0]
 if preset == "output":
 	exit() #This file is in the output folder. Ignore it.
 
+#Ensure that the path for the output filename exists.
+try:
+	os.makedirs(os.path.dirname(output_filename))
+except OSError as e:
+	if e.errno != errno.EEXIST:
+		print("Could not make output directory for file", output_filename, ":", e)
+		exit()
+except Exception as e:
+	print("Could really not make output directory for file", output_filename, ":", e)
+	exit()
+
 print("===============AUTOENCODE===============")
 print("==== INPUT:", input_filename)
-print("==== OUTPUT:", args.output_filename)
+print("==== OUTPUT:", output_filename)
 print("==== PRESET:", preset)
 
 guid = uuid.uuid4().hex #A new file name that is almost guaranteed to not exist yet.
@@ -290,7 +303,7 @@ try:
 				else:
 					print("Unknown codec:", track_metadata.codec) #Muxing.
 			mux_mkv(tracks, attachments)
-			shutil.move(guid + "-out.mkv", args.output_filename)
+			shutil.move(guid + "-out.mkv", output_filename)
 		else:
 			raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
 	elif preset == "opus":
