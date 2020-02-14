@@ -312,7 +312,7 @@ try:
 			trk.file_name = input_filename
 			encode_opus(trk)
 			shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
-		elif extension in [".mp3"]:
+		elif extension in [".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta"]:
 			trk = track.Track()
 			trk.file_name = input_filename
 			encode_flac(trk)
