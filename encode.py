@@ -307,7 +307,7 @@ try:
 		else:
 			raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
 	elif preset == "opus":
-		if extension == ".flac":
+		if extension == ".flac" or extension == ".wav" or extension == ".aiff":
 			trk = track.Track()
 			trk.file_name = input_filename
 			encode_opus(trk)
