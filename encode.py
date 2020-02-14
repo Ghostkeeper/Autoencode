@@ -121,7 +121,7 @@ def encode_flac(track_metadata):
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0: #0 is success.
-		raise Exception("Calling FFmpeg failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr.decode("utf-8")))
+		raise Exception("Calling FFmpeg failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=str(cerr)))
 
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "flac"
