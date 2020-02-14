@@ -310,13 +310,14 @@ try:
 		if extension in [".flac", ".wav", ".aiff"]:
 			trk = track.Track()
 			trk.file_name = input_filename
+			dirty_files = [input_filename]
 			encode_opus(trk)
 			shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
 		elif extension in [".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta"]:
 			trk = track.Track()
 			trk.file_name = input_filename
 			encode_flac(trk)
-			dirty_files = [trk.file_name]
+			dirty_files = [input_filename, trk.file_name]
 			encode_opus(trk)
 			shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
 		else:
