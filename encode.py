@@ -293,6 +293,11 @@ try:
 			shutil.move(guid + "-out.mkv", args.output_filename)
 		else:
 			raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
+	elif preset == "opus":
+		if extension == ".flac":
+			trk = track.Track()
+			trk.file_name = input_filename
+			encode_opus(trk)
 	else:
 		raise Exception("Unknown preset: {preset}".format(preset=preset))
 finally:
