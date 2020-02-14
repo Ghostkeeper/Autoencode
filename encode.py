@@ -311,6 +311,7 @@ try:
 			trk = track.Track()
 			trk.file_name = input_filename
 			encode_opus(trk)
+			shutil.move(input_filename + ".opus", os.path.splitext(output_filename)[0] + ".opus")
 	else:
 		raise Exception("Unknown preset: {preset}".format(preset=preset))
 finally:
