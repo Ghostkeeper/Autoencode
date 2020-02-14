@@ -274,32 +274,28 @@ def mux_mkv(tracks, attachments):
 	if exit_code == 1:
 		print("MKVMerge warning:", cout.decode("utf-8"))
 
+tracks = []
+attachments = []
 try:
-	#Demuxing.
-	tracks = []
-	attachments = []
 	if extension == ".mkv":
-		tracks, attachments = extract_mkv(input_filename)
+		#Demuxing.
+		tracks, attachments = extract_mkv(input_filename) #Encoding.
+		for track_metadata in tracks:
+			if track_metadata.codec == "flac":
+				encode_opus(track_metadata)
+			elif track_metadata.codec == "aac" or track_metadata.codec == "truehd":
+				original_filename = track_metadata.file_name
+				encode_flac(track_metadata)
+				if os.path.exists(original_filename):
+					os.remove(original_filename)
+				encode_opus(track_metadata)
+			elif track_metadata.codec == "h264" or track_metadata.codec == "h265":
+				encode_h265(track_metadata)
+			else:
+				print("Unknown codec:", track_metadata.codec) #Muxing.
+		mux_mkv(tracks, attachments)
+		shutil.move(guid + "-out.mkv", args.output_filename)
 	else:
 		raise Exception("Unknown file extension: {extension}".format(extension=extension))
-
-	#Encoding.
-	for track_metadata in tracks:
-		if track_metadata.codec == "flac":
-			encode_opus(track_metadata)
-		elif track_metadata.codec == "aac" or track_metadata.codec == "truehd":
-			original_filename = track_metadata.file_name
-			encode_flac(track_metadata)
-			if os.path.exists(original_filename):
-				os.remove(original_filename)
-			encode_opus(track_metadata)
-		elif track_metadata.codec == "h264" or track_metadata.codec == "h265":
-			encode_h265(track_metadata)
-		else:
-			print("Unknown codec:", track_metadata.codec)
-
-	#Muxing.
-	mux_mkv(tracks, attachments)
-	shutil.move(guid + "-out.mkv", args.output_filename)
 finally:
 	clean(tracks, attachments) #Clean up after any mistakes.
