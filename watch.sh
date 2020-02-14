@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-inotifywait -r -e moved_to,close_write -m --exclude "$1/output" "$1" |
-while read -r directory events filename; do
-	python3 $(dirname "$0")/encode.py "$directory/$filename" "$1/output/$filename"
-done
+inotifywait -r -e moved_to,close_write -m --exclude "$1/output" --format "%e %w%f" "$1" |
+  while read events filepath; do
+    name="$(echo $filepath | cut -d'/' -f6-)"
+    python3 $(dirname "$0")/encode.py "$name" "$1/output/$name"
+  done
