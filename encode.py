@@ -307,11 +307,18 @@ try:
 		else:
 			raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
 	elif preset == "opus":
-		if extension == ".flac" or extension == ".wav" or extension == ".aiff":
+		if extension in [".flac", ".wav", ".aiff"]:
 			trk = track.Track()
 			trk.file_name = input_filename
 			encode_opus(trk)
-			shutil.move(input_filename + ".opus", os.path.splitext(output_filename)[0] + ".opus")
+			shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
+		elif extension in [".mp3"]:
+			trk = track.Track()
+			trk.file_name = input_filename
+			encode_flac(trk)
+			dirty_files = [trk.file_name]
+			encode_opus(trk)
+			shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
 		else:
 			raise Exception("Unknown file extension for Opus: {extension}".format(extension=extension))
 	else:
