@@ -121,7 +121,7 @@ def encode_flac(track_metadata):
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0: #0 is success.
-		raise Exception("Calling FFmpeg failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=str(cerr)))
+		raise Exception("Calling FFmpeg failed with exit code {exit_code}. CERR: {cerr} . COUT: {cout}".format(exit_code=exit_code, cerr=str(cerr), cout=str(cout)))
 
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "flac"
@@ -313,7 +313,7 @@ try:
 			dirty_files = [input_filename]
 			encode_opus(trk)
 			shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
-		elif extension in [".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta"]:
+		elif extension in [".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta", ".m4a"]:
 			trk = track.Track()
 			trk.file_name = input_filename
 			encode_flac(trk)
