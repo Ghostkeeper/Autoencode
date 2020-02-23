@@ -11,37 +11,70 @@ import uuid #To rename files to something that doesn't exist yet.
 import attachment #To demux attachments.
 import track #To demux tracks.
 
-parser = argparse.ArgumentParser(description="Re-encode videos.")
-parser.add_argument("input_filename", metavar="input", type=str, help="The input file name to encode.")
-parser.add_argument("output_filename", metavar="output", type=str, help="The output file name to write to.")
-parser.add_argument("--preset", dest="preset", type=str, help="Preset for encoding. Must be one of: 'hdanime', 'uhd'")
-args = parser.parse_args()
-input_filename = args.input_filename
-output_filename = args.output_filename
-preset = args.preset
-if not preset:
-	preset = input_filename.split("/")[0]
-if preset == "output":
-	exit() #This file is in the output folder. Ignore it.
-
-#Ensure that the path for the output filename exists.
-try:
-	os.makedirs(os.path.dirname(output_filename))
-except OSError as e:
-	if e.errno != errno.EEXIST:
-		print("Could not make output directory for file", output_filename, ":", e)
+def process(input_filename, output_filename, preset):
+	#Ensure that the path for the output filename exists.
+	try:
+		os.makedirs(os.path.dirname(output_filename))
+	except OSError as e:
+		if e.errno != errno.EEXIST:
+			print("Could not make output directory for file", output_filename, ":", e)
+			exit()
+	except Exception as e:
+		print("Could really not make output directory for file", output_filename, ":", e)
 		exit()
-except Exception as e:
-	print("Could really not make output directory for file", output_filename, ":", e)
-	exit()
 
-print("===============AUTOENCODE===============")
-print("==== INPUT:", input_filename)
-print("==== OUTPUT:", output_filename)
-print("==== PRESET:", preset)
+	print("===============AUTOENCODE===============")
+	print("==== INPUT:", input_filename)
+	print("==== OUTPUT:", output_filename)
+	print("==== PRESET:", preset)
 
-guid = uuid.uuid4().hex #A new file name that is almost guaranteed to not exist yet.
-extension = os.path.splitext(input_filename)[1]
+	guid = uuid.uuid4().hex #A new file name that is almost guaranteed to not exist yet.
+	extension = os.path.splitext(input_filename)[1]
+
+	dirty_files = []
+	try:
+		if preset == "uhd" or preset == "hdanime":
+			if extension == ".mkv":
+				#Demuxing.
+				tracks, attachments = extract_mkv(input_filename, guid) #Encoding.
+				dirty_files = [trk.file_name for trk in tracks] + [attachment.file_name for attachment in attachments]
+				for track_metadata in tracks:
+					if track_metadata.codec == "flac":
+						encode_opus(track_metadata)
+					elif track_metadata.codec == "aac" or track_metadata.codec == "truehd":
+						original_filename = track_metadata.file_name
+						encode_flac(track_metadata)
+						if os.path.exists(original_filename):
+							os.remove(original_filename)
+						encode_opus(track_metadata)
+					elif track_metadata.codec == "h264" or track_metadata.codec == "h265":
+						encode_h265(track_metadata, preset)
+					else:
+						print("Unknown codec:", track_metadata.codec) #Muxing.
+				mux_mkv(tracks, attachments, guid, input_filename)
+				shutil.move(guid + "-out.mkv", output_filename)
+			else:
+				raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
+		elif preset == "opus":
+			if extension in [".flac", ".wav", ".aiff"]:
+				trk = track.Track()
+				trk.file_name = input_filename
+				dirty_files = [input_filename]
+				encode_opus(trk)
+				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
+			elif extension in [".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta", ".m4a"]:
+				trk = track.Track()
+				trk.file_name = input_filename
+				encode_flac(trk)
+				dirty_files = [input_filename, trk.file_name]
+				encode_opus(trk)
+				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
+			else:
+				raise Exception("Unknown file extension for Opus: {extension}".format(extension=extension))
+		else:
+			raise Exception("Unknown preset: {preset}".format(preset=preset))
+	finally:
+		clean(dirty_files) #Clean up after any mistakes.
 
 def clean(files):
 	"""Cleans up the changes we made after everything is done."""
@@ -51,7 +84,7 @@ def clean(files):
 		except Exception as e:
 			print(e)
 
-def extract_mkv(in_mkv):
+def extract_mkv(in_mkv, guid):
 	"""Extracts an MKV file into its components."""
 	#Find all tracks and attachments in the MKV file.
 	mkvinfo_command = ["mkvinfo", in_mkv]
@@ -151,7 +184,7 @@ def encode_opus(track_metadata):
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "opus"
 
-def encode_h265(track_metadata):
+def encode_h265(track_metadata, preset):
 	"""Encodes a video file to the H265 codec.
 	Accepts any codec that FFmpeg supports (which is a lot)."""
 	print("---- Encoding", track_metadata.file_name, "to H265...")
@@ -230,7 +263,7 @@ def encode_h265(track_metadata):
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "h265"
 
-def mux_mkv(tracks, attachments):
+def mux_mkv(tracks, attachments, guid, input_filename):
 	new_file_name = guid + "-out.mkv"
 
 	mux_command = ["mkvmerge", "-o", new_file_name]
@@ -281,48 +314,3 @@ def mux_mkv(tracks, attachments):
 		raise Exception("Calling MKVMerge failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 	if exit_code == 1:
 		print("MKVMerge warning:", cout.decode("utf-8"))
-
-dirty_files = []
-try:
-	if preset == "uhd" or preset == "hdanime":
-		if extension == ".mkv":
-			#Demuxing.
-			tracks, attachments = extract_mkv(input_filename) #Encoding.
-			dirty_files = [track.file_name for track in tracks] + [attachment.file_name for attachment in attachments]
-			for track_metadata in tracks:
-				if track_metadata.codec == "flac":
-					encode_opus(track_metadata)
-				elif track_metadata.codec == "aac" or track_metadata.codec == "truehd":
-					original_filename = track_metadata.file_name
-					encode_flac(track_metadata)
-					if os.path.exists(original_filename):
-						os.remove(original_filename)
-					encode_opus(track_metadata)
-				elif track_metadata.codec == "h264" or track_metadata.codec == "h265":
-					encode_h265(track_metadata)
-				else:
-					print("Unknown codec:", track_metadata.codec) #Muxing.
-			mux_mkv(tracks, attachments)
-			shutil.move(guid + "-out.mkv", output_filename)
-		else:
-			raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
-	elif preset == "opus":
-		if extension in [".flac", ".wav", ".aiff"]:
-			trk = track.Track()
-			trk.file_name = input_filename
-			dirty_files = [input_filename]
-			encode_opus(trk)
-			shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
-		elif extension in [".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta", ".m4a"]:
-			trk = track.Track()
-			trk.file_name = input_filename
-			encode_flac(trk)
-			dirty_files = [input_filename, trk.file_name]
-			encode_opus(trk)
-			shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
-		else:
-			raise Exception("Unknown file extension for Opus: {extension}".format(extension=extension))
-	else:
-		raise Exception("Unknown preset: {preset}".format(preset=preset))
-finally:
-	clean(dirty_files) #Clean up after any mistakes.
