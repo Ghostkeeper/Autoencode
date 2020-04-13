@@ -62,7 +62,7 @@ def process(input_filename, output_filename, preset):
 				dirty_files = [input_filename]
 				encode_opus(trk)
 				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
-			elif extension in [".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta", ".m4a"]:
+			elif extension in [".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta", ".m4a", ".wv"]:
 				trk = track.Track()
 				trk.file_name = input_filename
 				encode_flac(trk)
@@ -72,7 +72,7 @@ def process(input_filename, output_filename, preset):
 			else:
 				raise Exception("Unknown file extension for Opus: {extension}".format(extension=extension))
 		elif preset == "flac":
-			if extension in [".flac", ".wav", ".aiff", ".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta", ".m4a"]:
+			if extension in [".flac", ".wav", ".aiff", ".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta", ".m4a", ".wv"]:
 				trk = track.Track()
 				trk.file_name = input_filename
 				dirty_files = [input_filename]
