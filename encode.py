@@ -152,18 +152,18 @@ def extract_mkv(in_mkv, guid):
 	return tracks, attachments
 
 def encode_flac(track_metadata):
-	"""Encodes an audio file to the FLAC codec.
-	This is sometimes used as an intermediary step when the opusenc codec doesn't support the audio file.
-	Accepts any codec that FFmpeg supports (which is a lot)."""
+	"""
+	Encodes an audio track to the FLAC codec.
+
+	The aim of this encode is to encode losslessly, so all of the original file
+	parameters are kept (frequency, bit depth). Within those parameters, it
+	tries to encode to the smallest file size.
+
+	Accepts any codec that FFmpeg supports (which is a lot).
+	"""
 	print("---- Encoding", track_metadata.file_name, "to FLAC...")
 	new_file_name = track_metadata.file_name + ".flac"
-	ffmpeg_command = ["ffmpeg", "-i", track_metadata.file_name, "-f", "flac", new_file_name]
-	print(ffmpeg_command)
-	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE)
-	(cout, cerr) = process.communicate()
-	exit_code = process.wait()
-	if exit_code != 0: #0 is success.
-		raise Exception("Calling FFmpeg failed with exit code {exit_code}. CERR: {cerr} . COUT: {cout}".format(exit_code=exit_code, cerr=str(cerr), cout=str(cout)))
+	ffmpeg("-i", track_metadata.file_name, "-c:a", "flac", "-compression_level", "12", "-lpc_passes", "8", "-lpc_type", "3", "-threads", "8", new_file_name)
 
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "flac"
@@ -323,3 +323,17 @@ def mux_mkv(tracks, attachments, guid, input_filename):
 		raise Exception("Calling MKVMerge failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 	if exit_code == 1:
 		print("MKVMerge warning:", cout.decode("utf-8"))
+
+def ffmpeg(*options):
+	"""
+	Call upon FFMPEG to transcode something.
+	:param options: The parameters to the FFMPEG call.
+	"""
+	ffmpeg_command = ["ffmpeg"] + list(options)
+	print("Calling FFMPEG:", " ".join(ffmpeg_command))
+
+	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0: #0 is success.
+		raise Exception("Calling FFmpeg failed with exit code {exit_code}. CERR: {cerr} . COUT: {cout}".format(exit_code=exit_code, cerr=str(cerr), cout=str(cout)))
