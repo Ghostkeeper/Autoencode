@@ -71,6 +71,15 @@ def process(input_filename, output_filename, preset):
 				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".opus")
 			else:
 				raise Exception("Unknown file extension for Opus: {extension}".format(extension=extension))
+		elif preset == "png":
+			if extension in [".png", ".bmp", ".gif", ".pnm", ".tif", ".tiff"]:
+				trk = track.Track()
+				trk.file_name = input_filename
+				dirty_files = [input_filename]
+				encode_png(trk)
+				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".png")
+			else:
+				raise Exception("Unknown file extension for PNG: {extension}".format(extension=extension))
 		elif preset == "flac":
 			if extension in [".flac", ".wav", ".aiff", ".mp3", ".aax", ".aa", ".acm", ".bfstm", ".brstm", ".caf", ".genh", ".mp2", ".mp4", ".msf", ".midi", ".ogg", ".ac3", ".dts", ".pcm", ".rm", ".rl2", ".ta", ".wma", ".aac", ".alac", ".mp1", ".opus", ".vmd", ".tta", ".m4a", ".wv"]:
 				trk = track.Track()
