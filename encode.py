@@ -193,6 +193,43 @@ def encode_opus(track_metadata):
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "opus"
 
+def encode_png(track_metadata):
+	"""
+	Encodes a picture in PNG.
+	Accepted input codecs:
+	- PNG
+	- BMP
+	- GIF
+	- PNM
+	- TIFF
+	"""
+	print("---- Encoding", track_metadata.file_name, "to PNG...")
+
+	# First step: OptiPNG.
+	new_file_name = track_metadata.file_name + ".png"
+	optipng_command = ["optipng", "-o7", "-strip", "all", "-snip", "-out", new_file_name, track_metadata.file_name]
+	print(optipng_command)
+	process = subprocess.Popen(optipng_command, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0: #0 is success.
+		raise Exception("OptiPNG failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
+
+	ect_command = ["/home/ruben/encoding/Efficient-Compression-Tool/build/ect", "-9", "-strip", "--allfilters-b", "--mt-deflate", new_file_name]
+	print(ect_command)
+	process = subprocess.Popen(ect_command, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0: #0 is success.
+		raise Exception("ECT failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
+
+	#Delete old file.
+	if os.path.exists(track_metadata.file_name):
+		os.remove(track_metadata.file_name)
+
+	track_metadata.file_name = new_file_name
+	track_metadata.codec = "png"
+
 def encode_h265(track_metadata, preset):
 	"""Encodes a video file to the H265 codec.
 	Accepts any codec that FFmpeg supports (which is a lot)."""
