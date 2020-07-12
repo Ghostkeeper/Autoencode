@@ -55,6 +55,15 @@ def process(input_filename, output_filename, preset):
 				shutil.move(guid + "-out.mkv", output_filename)
 			else:
 				raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
+		elif preset == "jpg":
+			if extension in [".jpg", ".jpeg"]:
+				trk = track.Track()
+				trk.file_name = input_filename
+				dirty_files = [input_filename]
+				encode_jpg(trk)
+				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".jpg")
+			else:
+				raise Exception("Unknown file extension for JPG: {extension}".format(extension=extension))
 		elif preset == "opus":
 			if extension in [".flac", ".wav", ".aiff"]:
 				trk = track.Track()
