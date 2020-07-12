@@ -177,6 +177,31 @@ def encode_flac(track_metadata):
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "flac"
 
+def encode_jpg(track_metadata):
+	"""
+	Optimises a JPG image.
+
+	This encoding only accepts JPG files as input. It will always encode
+	losslessly (save for metadata) to optimise compression.
+	"""
+	print("---- Encoding", track_metadata.file_name, "to JPG...")
+	new_file_name = track_metadata.file_name + ".jpg"
+	shutil.copy(track_metadata.file_name, new_file_name)  #Work only on a copy.
+	ect_command = ["/home/ruben/encoding/Efficient-Compression-Tool/build/ect", "-9", "-strip", "--mt-deflate", new_file_name]
+	print(ect_command)
+	process = subprocess.Popen(ect_command, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if(exit_code != 0): #0 is success.
+		raise Exception("ECT failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cerr))
+
+	#Delete old file.
+	if os.path.exists(track_metadata.file_name):
+		os.remove(track_metadata.file_name)
+
+	track_metadata.file_name = new_file_name
+	track_metadata.codec = "jpg"
+
 def encode_opus(track_metadata):
 	"""Encodes an audio file to the Opus codec.
 	Accepted input codecs:
