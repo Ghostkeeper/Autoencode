@@ -30,6 +30,7 @@ def process(input_filename, output_filename, preset):
 
 	guid = uuid.uuid4().hex #A new file name that is almost guaranteed to not exist yet.
 	extension = os.path.splitext(input_filename)[1]
+	extension = extension.lower()
 
 	dirty_files = []
 	try:
