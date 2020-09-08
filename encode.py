@@ -56,6 +56,12 @@ def process(input_filename, output_filename, preset):
 				shutil.move(guid + "-out.mkv", output_filename)
 			else:
 				raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
+		if preset == "strip_subs":
+			if extension == ".mkv":
+				ffmpeg("-i", input_filename, "-y", "-map", "0:v", "-map", "0:a", "-sn", "-c:v", "copy", "-c:a", "copy", output_filename)
+				os.remove(input_filename)
+			else:
+				raise Exception("Unknown file extension for stripping subtitles: {extension}".format(extension=extension))
 		elif preset == "jpg":
 			if extension in [".jpg", ".jpeg"]:
 				trk = track.Track()
