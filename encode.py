@@ -2,8 +2,10 @@
 
 import argparse #To parse command line arguments.
 import errno #To recognise OS errors.
+import glob #To find concatenated files.
 import os #To delete files as clean-up.
 import os.path #To parse file names (used for file type detection).
+import re #To parse the stream info output.
 import shutil #To move files.
 import subprocess #To call the encoders and muxers.
 import uuid #To rename files to something that doesn't exist yet.
@@ -51,12 +53,51 @@ def process(input_filename, output_filename, preset):
 					elif track_metadata.codec == "h264" or track_metadata.codec == "h265":
 						encode_h265(track_metadata, preset)
 					else:
-						print("Unknown codec:", track_metadata.codec) #Muxing.
+						print("Unknown codec:", track_metadata.codec)
+				#Muxing.
 				mux_mkv(tracks, attachments, guid, input_filename)
 				shutil.move(guid + "-out.mkv", output_filename)
 			else:
 				raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
-		if preset == "strip_subs":
+		elif preset == "dvd":
+			if extension == ".vob":
+				#Only process the zeroth file of DVD files.
+				if os.path.basename(input_filename).startswith("VTS_") and not input_filename.endswith("_0.VOB"):
+					print("Skipping {input_filename} because it's not the main file of the VOB chain.".format(input_filename=input_filename))
+				else:
+					if os.path.basename(input_filename).startswith("VTS_") and input_filename.endswith("_0.VOB"):
+						#Concatenate all of the components of this one stream together.
+						find_path = input_filename[:-5] + "*.VOB" #Replace the 0 with a *.
+						all_paths = sorted(glob.glob(find_path))
+						all_paths = all_paths[1:] #Drop the 0th one, since it's the DVD header.
+						if len(all_paths) > 1:
+							input_ffmpegname = "concat:" + "\\|".join(all_paths)
+						else:
+							input_ffmpegname = all_paths[0]
+					else:
+						input_ffmpegname = input_filename
+					#Demuxing.
+					tracks = extract_vob(input_ffmpegname, guid)
+					dirty_files = [trk.file_name for trk in tracks]
+					for track_metadata in tracks:
+						if track_metadata.codec == "ac3":
+							original_filename = track_metadata.file_name
+							encode_flac(track_metadata)
+							if os.path.exists(original_filename):
+								os.remove(original_filename)
+							encode_opus(track_metadata)
+						elif track_metadata.codec == "mpg":
+							encode_h265(track_metadata, preset)
+						elif track_metadata.codec == "sub":
+							pass #Leave image-encoded subs as-is for now.
+						else:
+							print("Unknown codec:", track_metadata.codec)
+					#Muxing.
+					mux_mkv(tracks, [], guid, input_filename)
+					shutil.move(guid + "-out.mkv", output_filename)
+			else:
+				raise Exception("Unknown file extension for DVD: {extension}".format(extension=extension))
+		elif preset == "strip_subs":
 			if extension == ".mkv":
 				ffmpeg("-i", input_filename, "-y", "-map", "0:v", "-map", "0:a", "-sn", "-c:v", "copy", "-c:a", "copy", output_filename)
 				os.remove(input_filename)
@@ -175,6 +216,40 @@ def extract_mkv(in_mkv, guid):
 			raise Exception("Calling MKVExtract on attachments failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
 	return tracks, attachments
+
+def extract_vob(in_vob, guid):
+	"""Extracts a VOB file into audio and video components."""
+	ffmpeg_command = ["ffmpeg", "-i", in_vob]
+	print(ffmpeg_command)
+	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	process.wait() #Ignore the exit code. It always fails.
+	vobinfo = cerr.decode("utf-8")
+	tracks = []
+	for match in re.finditer(r"  Stream #0:(\d+)\[0x[0-9a-f]+\]: (\w+): ([^\n]+)", vobinfo):
+		track_nr = match.group(1)
+		track_type = match.group(2)
+		track_codec = match.group(3)
+		new_track = track.Track()
+		new_track.from_vob(track_nr, track_type, track_codec)
+		new_track.file_name = guid + "-T" + str(new_track.track_nr) + "." + new_track.codec
+		if new_track.type != "unknown":
+			tracks.append(new_track)
+
+	#Generate the parameters to pass to ffmpeg.
+	track_params = ["-i", in_vob]
+	for track_metadata in tracks:
+		track_params.append("-map")
+		track_params.append("0:" + str(track_metadata.track_nr))
+		track_params.append("-c")
+		track_params.append("copy")
+		track_params.append(track_metadata.file_name)
+
+	#Extract all tracks.
+	print("---- Extracting tracks...")
+	ffmpeg(*track_params)
+
+	return tracks
 
 def encode_flac(track_metadata):
 	"""
@@ -298,6 +373,11 @@ def encode_h265(track_metadata, preset):
 			"preset": "7",
 			"bitrate": "3500",
 			"deblock": "-2:0"
+		},
+		"dvd": {
+			"preset": "8",
+			"bitrate": "600",
+			"deblock": "-2:0"
 		}
 	}
 
@@ -322,7 +402,7 @@ def encode_h265(track_metadata, preset):
 
 		vspipe_command = ["vspipe", "--y4m", vapoursynth_script, "-"]
 		x265_command = [
-			"/home/ruben/encoding/x265/build2/x265",
+			"x265",
 			"-",
 			"--y4m",
 			"--fps", str(track_metadata.fps),

@@ -157,3 +157,27 @@ class Track:
 					print("  Bit depth:", self.bit_depth)
 				except ValueError: #Not an integer.
 					pass
+
+	def from_vob(self, track_nr, track_type, track_codec):
+		self.track_nr = int(track_nr)
+
+		type_translation = {
+			"Video": "video",
+			"Audio": "audio",
+		}
+		self.type = type_translation.get(track_type, "unknown")
+
+		codec_parts = track_codec.split(", ")
+		codec_translation = {
+			"ac3": "ac3",
+			"mpeg2video (Main)": "mpg"
+		}
+		self.codec = codec_translation.get(codec_parts[0], "unknown")
+		if self.codec == "ac3":
+			self.frequency = int(codec_parts[1][:-3])  # Remove " Hz"
+			self.channels = 2 if codec_parts[2] == "stereo" else (1 if codec_parts[2] == "mono" else 0)
+		elif self.codec == "mpg":
+			self.fps = float(codec_parts[5][:-4]) * 2  # Remove " fps" and double due to interlacing.
+			size_parts = codec_parts[3].split()[0].split("x")
+			self.display_width = int(size_parts[0])
+			self.display_height = int(size_parts[1])
