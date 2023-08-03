@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import re
+
 class Track:
 	"""
 	Represents one track in a media container.
@@ -175,16 +177,20 @@ class Track:
 		codec_parts = track_codec.split(", ")
 		codec_translation = {
 			"ac3": "ac3",
-			"mpeg2video (Main)": "mpg"
+			"mpeg2video": "mpg"
 		}
-		self.codec = codec_translation.get(codec_parts[0], "unknown")
+		self.codec = codec_translation.get(codec_parts[0].strip(), "unknown")
 		if self.codec == "ac3":
 			self.frequency = int(codec_parts[1][:-3])  # Remove " Hz"
 			self.channels = 2 if codec_parts[2] == "stereo" else (1 if codec_parts[2] == "mono" else 0)
 		elif self.codec == "mpg":
-			self.fps = float(codec_parts[5][:-4])  # Remove " fps"
-			if self.interlaced:
-				self.fps *= 2
-			size_parts = codec_parts[3].split()[0].split("x")
-			self.display_width = int(size_parts[0])
-			self.display_height = int(size_parts[1])
+			fps_match = re.findall("\d+ fps", track_codec)
+			if fps_match:
+				self.fps = float(fps_match[0][:-4])  # Remove " fps"
+				if self.interlaced:
+					self.fps *= 2
+			size_match = re.findall("\d+x\d+", track_codec)
+			if size_match:
+				size_parts = size_match[0].split("x")
+				self.display_width = int(size_parts[0])
+				self.display_height = int(size_parts[1])
