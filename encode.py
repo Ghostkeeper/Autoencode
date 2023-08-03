@@ -220,7 +220,7 @@ def extract_mkv(in_mkv, guid):
 def extract_vob(in_vob, guid):
 	"""Extracts a VOB file into audio and video components."""
 	#Detect interlacing.
-	mediainfo_command = "mediainfo --Inform='Video;%ScanType%,%ScanOrder%' " + in_vob
+	mediainfo_command = "mediainfo --Inform='Video;%ScanType%,%ScanOrder%' \"" + in_vob + "\""
 	print(mediainfo_command)
 	process = subprocess.Popen(mediainfo_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
