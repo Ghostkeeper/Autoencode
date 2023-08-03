@@ -238,6 +238,7 @@ def extract_vob(in_vob, guid):
 	(cout, cerr) = process.communicate()
 	process.wait() #Ignore the exit code. It always fails.
 	vobinfo = cerr.decode("utf-8")
+	vobinfo = re.sub(r"\(.*?\)", "", vobinfo)  # Remove parts between brackets. It messes up parsing.
 	tracks = []
 	for match in re.finditer(r"  Stream #0:(\d+)\[0x[0-9a-f]+\]: (\w+): ([^\n]+)", vobinfo):
 		track_nr = match.group(1)
