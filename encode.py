@@ -222,18 +222,29 @@ def extract_mkv(in_mkv, guid):
 
 def extract_vob(in_vob, guid):
 	"""Extracts a VOB file into audio and video components."""
+	if in_vob.startswith("concat:"):
+		probe_vob = in_vob.split("|")[-1] #Can only take mediainfo from one file at a time. Pick the last one.
+	else:
+		probe_vob = in_vob
+
 	#Detect interlacing.
-	mediainfo_command = "mediainfo --Inform='Video;%ScanType%,%ScanOrder%' \"" + in_vob + "\""
+	mediainfo_command = "mediainfo --Inform='Video;%ScanType%,%ScanOrder%,%PixelAspectRatio%,%Standard%' \"" + probe_vob + "\""
 	print(mediainfo_command)
 	process = subprocess.Popen(mediainfo_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0:
-		raise Exception("Calling Mediainfo on {in_vob} failed with exit code {exit_code}.".format(in_vob=in_vob, exit_code=exit_code))
+		raise Exception("Calling Mediainfo on {probe_vob} failed with exit code {exit_code}.".format(probe_vob=probe_vob, exit_code=exit_code))
 	mediainfo_parts = cout.decode("utf-8").split(",")
 	is_interlaced = mediainfo_parts[0] == "Interlaced"
 	field_order = mediainfo_parts[1].lower().strip()
 	print("Interlace detection:", is_interlaced, field_order, "(", mediainfo_parts, ")")
+	pixel_aspect_ratio = float(mediainfo_parts[2])
+	standard = mediainfo_parts[3]
+	print("Standard:", standard)
+	if standard.strip() == "PAL":
+		pixel_aspect_ratio = 1.42222  # Sometimes the PAR is wrong for some reason. Standard is more reliable.
+	print("Pixel aspect ratio:", pixel_aspect_ratio)
 
 	ffmpeg_command = ["ffmpeg", "-i", in_vob]
 	print(ffmpeg_command)
@@ -248,7 +259,7 @@ def extract_vob(in_vob, guid):
 		track_type = match.group(2)
 		track_codec = match.group(3)
 		new_track = track.Track()
-		new_track.from_vob(track_nr, track_type, track_codec, is_interlaced, field_order)
+		new_track.from_vob(track_nr, track_type, track_codec, is_interlaced, field_order, pixel_aspect_ratio)
 		new_track.file_name = guid + "-T" + str(new_track.track_nr) + "." + new_track.codec
 		if new_track.type != "unknown":
 			tracks.append(new_track)
@@ -433,6 +444,7 @@ def encode_h265(track_metadata, preset):
 			"-",
 			"--y4m",
 			"--fps", str(track_metadata.fps),
+			"--sar", track_metadata.pixel_aspect_ratio,
 			"--preset", x265_presets[preset]["preset"],
 			"--bitrate", x265_presets[preset]["bitrate"],
 			"--deblock", x265_presets[preset]["deblock"],
