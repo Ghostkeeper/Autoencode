@@ -24,6 +24,7 @@ class Track:
 		self.display_height = 0
 		self.interlaced = False
 		self.interlace_field_order = "tff"
+		self.pixel_aspect_ratio = "1:1"
 
 		#Audio properties.
 		self.frequency = 0
@@ -162,7 +163,7 @@ class Track:
 				except ValueError: #Not an integer.
 					pass
 
-	def from_vob(self, track_nr, track_type, track_codec, interlaced=False, interlace_field_order="tff"):
+	def from_vob(self, track_nr, track_type, track_codec, interlaced=False, interlace_field_order="tff", pixel_aspect_ratio=1.0):
 		self.track_nr = int(track_nr)
 
 		type_translation = {
@@ -173,6 +174,17 @@ class Track:
 		if self.type == "video":
 			self.interlaced = interlaced
 			self.interlace_field_order = interlace_field_order
+			#Convert pixel aspect ratio from float to ratio.
+			ratio = "1:1"
+			for divisor in range(1, 1000):
+				rounded = round(pixel_aspect_ratio * divisor)
+				reconstructed = rounded / divisor
+				difference = abs(reconstructed - pixel_aspect_ratio)
+				if difference < 0.0005:
+					ratio = "{rounded}:{divisor}".format(rounded=rounded, divisor=divisor)
+					print("Aspect ratio", pixel_aspect_ratio, "converted into", ratio)
+					break
+			self.pixel_aspect_ratio = ratio
 
 		codec_parts = track_codec.split(", ")
 		codec_translation = {
