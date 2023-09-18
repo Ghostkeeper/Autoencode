@@ -65,13 +65,13 @@ def process(input_filename, output_filename, preset):
 				if os.path.basename(input_filename).startswith("VTS_") and not input_filename.endswith("_0.VOB"):
 					print("Skipping {input_filename} because it's not the main file of the VOB chain.".format(input_filename=input_filename))
 				else:
+					all_paths = [input_filename]
 					if os.path.basename(input_filename).startswith("VTS_") and input_filename.endswith("_0.VOB"):
 						#Concatenate all of the components of this one stream together.
 						find_path = input_filename[:-5] + "*.VOB" #Replace the 0 with a *.
 						all_paths = sorted(glob.glob(find_path))
-						all_paths = all_paths[1:] #Drop the 0th one, since it's the DVD header.
 						if len(all_paths) > 1:
-							input_ffmpegname = "concat:" + "\\|".join(all_paths)
+							input_ffmpegname = "concat:" + "|".join(all_paths)
 						else:
 							input_ffmpegname = all_paths[0]
 					else:
@@ -86,15 +86,18 @@ def process(input_filename, output_filename, preset):
 							if os.path.exists(original_filename):
 								os.remove(original_filename)
 							encode_opus(track_metadata)
+							dirty_files.append(track_metadata.file_name)
 						elif track_metadata.codec == "mpg":
 							encode_h265(track_metadata, preset)
+							dirty_files.append(track_metadata.file_name)
 						elif track_metadata.codec == "sub":
 							pass #Leave image-encoded subs as-is for now.
 						else:
 							print("Unknown codec:", track_metadata.codec)
 					#Muxing.
 					mux_mkv(tracks, [], guid, input_filename)
-					shutil.move(guid + "-out.mkv", output_filename)
+					shutil.move(guid + "-out.mkv", os.path.splitext(output_filename)[0] + ".mkv")
+					dirty_files += all_paths
 			else:
 				raise Exception("Unknown file extension for DVD: {extension}".format(extension=extension))
 		elif preset == "strip_subs":
