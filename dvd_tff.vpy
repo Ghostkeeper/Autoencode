@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#VapourSynth script tuned for 4K live-action video.
+#VapourSynth script tuned for DVD live-action video with top-field-first interlacing.
 
 import vapoursynth
 import havsfunc
