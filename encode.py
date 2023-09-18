@@ -391,6 +391,18 @@ def encode_h265(track_metadata, preset):
 	stats_file = track_metadata.file_name + ".stats"
 	vapoursynth_script = track_metadata.file_name + ".vpy"
 
+	#Get the number of frames, to display progress.
+	mediainfo_command = "mediainfo --Inform='Video;%FrameCount%' \"" + track_metadata.file_name + "\""
+	print(mediainfo_command)
+	process = subprocess.Popen(mediainfo_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0:
+		print("Calling Mediainfo on {file_name} failed with exit code {exit_code}.".format(file_name=track_metadata.file_name, exit_code=exit_code))
+		num_frames = 0
+	else:
+		num_frames = int(cout.decode("utf-8"))
+
 	x265_presets = {
 		"hdanime": {
 			"preset": "8",
@@ -426,6 +438,7 @@ def encode_h265(track_metadata, preset):
 				vsscript = "dvd_tff"
 			else:
 				vsscript = "dvd_bff"
+			num_frames *= 2
 		else:
 			vsscript = "dvd_noninterlaced"
 	else:
@@ -453,6 +466,9 @@ def encode_h265(track_metadata, preset):
 			"--aq-strength", "0.5",
 			"--stats", stats_file
 		]
+		if num_frames != 0:
+			x265_command.append("--frames")
+			x265_command.append(str(num_frames))
 		x265_pass1 = ["--pass", "1", "-o", "/dev/null"]
 		x265_pass2 = ["--pass", "2", "-o", new_file_name]
 		pass1_command = " ".join(vspipe_command) + " | " + " ".join(x265_command + x265_pass1)
