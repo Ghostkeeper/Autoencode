@@ -145,6 +145,14 @@ def process(input_filename, output_filename, preset):
 				dirty_files = [input_filename]
 				encode_jpg(trk)
 				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".jpg")
+			elif extension in [".mkv", ".vob"]:
+				frames = extract_video_frames(input_filename)
+				dirty_files = [input_filename]
+				output_directory = os.path.dirname(output_filename)
+				for frame in frames:
+					encode_jpg(frame)
+					frame_output = os.path.join(output_directory, frame.file_name[:-4])
+					shutil.move(frame.file_name, frame_output)
 			else:
 				raise Exception("Unknown file extension for JPG: {extension}".format(extension=extension))
 		elif preset == "opus":
@@ -339,6 +347,70 @@ def extract_vob(in_vob, guid):
 
 	return tracks
 
+def extract_video_frames(in_vid):
+	"""
+	Extract a video file into individual frames.
+
+	Any video type supported by both MediaInfo and FFMPEG is supported by this function.
+	However multi-part VOB files could be problematic.
+
+	Audio is discarded.
+	:return: A list of tracks, one for each frame, to encode further.
+	"""
+	if in_vid.startswith("concat:"):
+		probe_vob = in_vid.split("|")[-1] #Can only take mediainfo from one file at a time. Pick the last one.
+	else:
+		probe_vob = in_vid
+
+	#Detect aspect ratio.
+	mediainfo_command = "mediainfo --Inform='Video;%Width%,%Height%,%PixelAspectRatio%,%Standard%' \"" + probe_vob + "\""
+	print(mediainfo_command)
+	process = subprocess.Popen(mediainfo_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0:
+		raise Exception("Calling Mediainfo on {probe_vob} failed with exit code {exit_code}.".format(probe_vob=probe_vob, exit_code=exit_code))
+	mediainfo_parts = cout.decode("utf-8").split(",")
+	width = int(mediainfo_parts[0])
+	height = int(mediainfo_parts[1])
+	pixel_aspect_ratio = float(mediainfo_parts[2])
+	standard = mediainfo_parts[3]
+	print("Standard:", standard)
+	if standard.strip() == "PAL":
+		pixel_aspect_ratio = 1.42222  # Sometimes the PAR is wrong for some reason. Standard is more reliable.
+	print("Pixel aspect ratio:", pixel_aspect_ratio)
+
+	new_file_name = probe_vob + "-%05d.png"
+	scale_filter = "scale={width}x{height}".format(width=str(int(width*pixel_aspect_ratio)), height=str(height))
+	ffmpeg_command = ["ffmpeg", "-i", in_vid, "-vsync", "0", "-vf", scale_filter, new_file_name]
+	print(ffmpeg_command)
+	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0:
+		raise Exception("Calling FFMPEG on VOB failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+
+	images = glob.glob(probe_vob + "-*.png")
+	tracks = []
+	for image in images:
+		#Crop each image.
+		output_file = image[:-4] + ".jpg"
+		imagemagick_command = ["convert", image, "-bordercolor", "black", "-border", "1x1", "-fuzz", "10%", "-trim", output_file]
+		print(imagemagick_command)
+		process = subprocess.Popen(imagemagick_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		(cout, cerr) = process.communicate()
+		exit_code = process.wait()
+		if exit_code != 0:
+			raise Exception("Calling ImageMagick on JPG failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+
+		#Create a track.
+		new_track = track.Track()
+		new_track.codec = "jpg"
+		new_track.file_name = image
+		tracks.append(new_track)
+
+	return tracks
+
 def encode_flac(track_metadata):
 	"""
 	Encodes an audio track to the FLAC codec.
@@ -366,7 +438,7 @@ def encode_jpg(track_metadata):
 	print("---- Encoding", track_metadata.file_name, "to JPG...")
 	new_file_name = track_metadata.file_name + ".jpg"
 	shutil.copy(track_metadata.file_name, new_file_name)  #Work only on a copy.
-	ect_command = ["/home/ruben/encoding/Efficient-Compression-Tool/build/ect", "-9", "-strip", "--mt-deflate", new_file_name]
+	ect_command = ["/home/ruben/Projects/Clones/Efficient-Compression-Tool/build/ect", "-9", "-strip", "--mt-deflate", new_file_name]
 	print(ect_command)
 	process = subprocess.Popen(ect_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
