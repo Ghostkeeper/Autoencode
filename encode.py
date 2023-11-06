@@ -61,11 +61,31 @@ def process(input_filename, output_filename, preset):
 				raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
 		elif preset == "dvd":
 			if extension == ".vob":
+				input_ffmpegname = None
+				
+				all_paths = [input_filename]
 				#Only process the zeroth file of DVD files.
-				if os.path.basename(input_filename).startswith("VTS_") and not input_filename.endswith("_0.VOB"):
-					print("Skipping {input_filename} because it's not the main file of the VOB chain.".format(input_filename=input_filename))
+				match = re.search(r"VTS_\d+_(\d+).VOB$", input_filename)
+				if os.path.exists(os.path.join(os.path.dirname(input_filename), "VIDEO_TS.IFO")):
+					#If there is a VIDEO_TS.IFO file, skip all .VOB files and process that one instead as titles.
+					print("Skipping {input_filename} because there is an .IFO file with titles.".format(input_filename=input_filename))
+				elif match:
+					if match.group(1) != "0" and os.path.exists(input_filename[:-len(match.group(1)) - 4] + "_0.VOB"):
+						print("Skipping {input_filename} because it's not the main file of the VOB chain.".format(input_filename=input_filename))
+					else:
+						if input_filename.endswith("_0.VOB"):
+							#Concatenate all of the components of this one stream together.
+							find_path = input_filename[:-len(match.group(1)) - 4] + "*.VOB" #Replace the 0 with a *.
+							def humansort(text):
+								return [int(part) if part.isdigit() else part for part in re.split(r"(\d+)", text)]
+							all_paths = sorted(glob.glob(find_path), key=humansort)
+							if len(all_paths) > 1:
+								input_ffmpegname = "concat:" + "|".join(all_paths)
+							else:
+								input_ffmpegname = all_paths[0]
+						else:
+							input_ffmpegname = input_filename
 				else:
-					all_paths = [input_filename]
 					if os.path.basename(input_filename).startswith("VTS_") and input_filename.endswith("_0.VOB"):
 						#Concatenate all of the components of this one stream together.
 						find_path = input_filename[:-5] + "*.VOB" #Replace the 0 with a *.
@@ -76,6 +96,8 @@ def process(input_filename, output_filename, preset):
 							input_ffmpegname = all_paths[0]
 					else:
 						input_ffmpegname = input_filename
+
+				if input_ffmpegname is not None:
 					#Demuxing.
 					tracks = extract_vob(input_ffmpegname, guid)
 					dirty_files = [trk.file_name for trk in tracks]
@@ -98,6 +120,16 @@ def process(input_filename, output_filename, preset):
 					mux_mkv(tracks, [], guid, input_filename)
 					shutil.move(guid + "-out.mkv", os.path.splitext(output_filename)[0] + ".mkv")
 					dirty_files += all_paths
+			elif extension == ".ifo":
+				if os.path.basename(input_filename) != "VIDEO_TS.IFO":
+					print("Skipping {input_filename} because it's not the right IFO file.".format(input_filename=input_filename))
+				else:
+					split_dvd(os.path.dirname(input_filename))
+					# After splitting the DVD, delete all original DVD files. Instead we'll process the split versions.
+					dirty_files += list(glob.glob("VTS_*_*.VOB"))
+					dirty_files += list(glob.glob("VTS_*_*.BUP"))
+					dirty_files += list(glob.glob("VTS_*_*.IFO"))
+					dirty_files += ["VIDEO_TS.IFO", "VIDEO_TS.BUP", "VIDEO_TS.VOB"]
 			else:
 				raise Exception("Unknown file extension for DVD: {extension}".format(extension=extension))
 		elif preset == "strip_subs":
@@ -161,6 +193,34 @@ def clean(files):
 			os.remove(file)
 		except Exception as e:
 			print(e)
+
+def split_dvd(in_directory):
+	if os.path.exists(os.path.join(in_directory, "title1.VOB")):
+		raise Exception("Already extracted a DVD here. Will not override.")
+	list_command = ["lsdvd", in_directory]
+	print(list_command)
+	process = subprocess.Popen(list_command, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0:
+		raise Exception("Calling lsdvd resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+
+	cout = cout.decode("utf-8")
+	lines = cout.split("\n")
+	for line in lines:
+		if line.startswith("Title: "):
+			title_pos = len("Title: ")
+			cells_pos = len("Title: XX, Length: HH:MM:SS.XXX Chapters: XX, Cells: ")
+			title_nr = str(int(line[title_pos:title_pos + 2]))
+			num_cells = str(int(line[cells_pos:cells_pos + 2]))
+
+			extract_command = ["mplayer", "dvd://" + title_nr, "-dvd-device", in_directory, "-chapter", "0-" + num_cells, "-dumpstream", "-dumpfile", os.path.join(in_directory, "title" + title_nr + ".VOB")]
+			print(extract_command)
+			process = subprocess.Popen(extract_command, stdout=subprocess.PIPE)
+			(cout, cerr) = process.communicate()
+			exit_code = process.wait()
+			if exit_code != 0:
+				raise Exception("Calling mplayer resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
 def extract_mkv(in_mkv, guid):
 	"""Extracts an MKV file into its components."""
