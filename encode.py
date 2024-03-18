@@ -314,7 +314,7 @@ def extract_vob(in_vob, guid):
 		pixel_aspect_ratio = 1.42222  # Sometimes the PAR is wrong for some reason. Standard is more reliable.
 	print("Pixel aspect ratio:", pixel_aspect_ratio)
 
-	ffmpeg_command = ["ffmpeg", "-i", in_vob]
+	ffmpeg_command = ["ffmpeg", "-probesize", "10M", "-analyzeduration", "50000000", "-i", in_vob]
 	print(ffmpeg_command)
 	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
@@ -333,7 +333,7 @@ def extract_vob(in_vob, guid):
 			tracks.append(new_track)
 
 	#Generate the parameters to pass to ffmpeg.
-	track_params = ["-i", in_vob]
+	track_params = ["-probesize", "10M", "-analyzeduration", "50000000", "-i", in_vob]
 	for track_metadata in tracks:
 		track_params.append("-map")
 		track_params.append("0:" + str(track_metadata.track_nr))
