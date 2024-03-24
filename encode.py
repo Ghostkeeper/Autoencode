@@ -205,7 +205,7 @@ def clean(files):
 def split_dvd(in_directory):
 	if os.path.exists(os.path.join(in_directory, "title1.VOB")):
 		raise Exception("Already extracted a DVD here. Will not override.")
-	list_command = ["lsdvd", in_directory]
+	list_command = ["lsdvd", "-x", in_directory]
 	print(list_command)
 	process = subprocess.Popen(list_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
@@ -215,20 +215,26 @@ def split_dvd(in_directory):
 
 	cout = cout.decode("utf-8")
 	lines = cout.split("\n")
-	for line in lines:
+	for line_nr, line in enumerate(lines):
 		if line.startswith("Title: "):
 			title_pos = len("Title: ")
 			cells_pos = len("Title: XX, Length: HH:MM:SS.XXX Chapters: XX, Cells: ")
+			angles_pos = len("\tNumber of Angles: ")
 			title_nr = str(int(line[title_pos:title_pos + 2]))
 			num_cells = str(int(line[cells_pos:cells_pos + 2]))
+			num_angles = int(lines[line_nr + 3][angles_pos:])
 
-			extract_command = ["mplayer", "dvd://" + title_nr, "-dvd-device", in_directory, "-chapter", "0-" + num_cells, "-dumpstream", "-dumpfile", os.path.join(in_directory, "title" + title_nr + ".VOB")]
-			print(extract_command)
-			process = subprocess.Popen(extract_command, stdout=subprocess.PIPE)
-			(cout, cerr) = process.communicate()
-			exit_code = process.wait()
-			if exit_code != 0:
-				raise Exception("Calling mplayer resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+			for this_angle in range(num_angles):
+				anglepart = ""
+				if num_angles > 1:
+					anglepart = "-" + str(this_angle + 1)
+				extract_command = ["mplayer", "dvd://" + title_nr, "-dvd-device", in_directory, "-chapter", "0-" + num_cells, "-dvdangle", str(this_angle + 1), "-dumpstream", "-dumpfile", os.path.join(in_directory, "title" + title_nr + anglepart + ".VOB")]
+				print(extract_command)
+				process = subprocess.Popen(extract_command, stdout=subprocess.PIPE)
+				(cout, cerr) = process.communicate()
+				exit_code = process.wait()
+				if exit_code != 0:
+					raise Exception("Calling mplayer resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
 def extract_mkv(in_mkv, guid):
 	"""Extracts an MKV file into its components."""
