@@ -70,10 +70,11 @@ def process(input_filename, output_filename, preset):
 					#If there is a VIDEO_TS.IFO file, skip all .VOB files and process that one instead as titles.
 					print("Skipping {input_filename} because there is an .IFO file with titles.".format(input_filename=input_filename))
 				elif match:
-					if match.group(1) != "0" and os.path.exists(input_filename[:-len(match.group(1)) - 4] + "_0.VOB"):
+					basename = input_filename[:-len(match.group(1)) - 4]
+					if (match.group(1) != "0" and os.path.exists(basename + "0.VOB")) or (not os.path.exists(basename + "0.VOB") and os.path.exists(basename + "1.VOB") and match.group(1) != "1"):
 						print("Skipping {input_filename} because it's not the main file of the VOB chain.".format(input_filename=input_filename))
 					else:
-						if input_filename.endswith("_0.VOB"):
+						if input_filename.endswith("_0.VOB") or not os.path.exists(basename + "0.VOB") and input_filename.endswith("_1.VOB"):
 							#Concatenate all of the components of this one stream together.
 							find_path = input_filename[:-len(match.group(1)) - 4] + "*.VOB" #Replace the 0 with a *.
 							def humansort(text):
@@ -86,7 +87,7 @@ def process(input_filename, output_filename, preset):
 						else:
 							input_ffmpegname = input_filename
 				else:
-					if os.path.basename(input_filename).startswith("VTS_") and input_filename.endswith("_0.VOB"):
+					if os.path.basename(input_filename).startswith("VTS_") and (input_filename.endswith("_0.VOB") or (input_filename.endswith("_1.VOB") and not os.path.exists(input_filename[:-5] + "0.VOB"))):
 						#Concatenate all of the components of this one stream together.
 						find_path = input_filename[:-5] + "*.VOB" #Replace the 0 with a *.
 						all_paths = sorted(glob.glob(find_path))
