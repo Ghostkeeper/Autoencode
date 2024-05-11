@@ -216,7 +216,7 @@ def split_dvd(in_directory):
 	if exit_code != 0:
 		raise Exception("Calling lsdvd resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
-	cout = cout.decode("utf-8")
+	cout = cout.decode("Latin-1")
 	lines = cout.split("\n")
 	for line_nr, line in enumerate(lines):
 		if line.startswith("Title: "):
