@@ -418,6 +418,9 @@ def extract_video_frames(in_vid):
 		new_track.file_name = image
 		tracks.append(new_track)
 
+		#Remove the temporary file.
+		os.remove(image)
+
 	return tracks
 
 def encode_flac(track_metadata):
