@@ -24,6 +24,9 @@ def process(input_filename, output_filename, preset):
 	except Exception as e:
 		print("Could really not make output directory for file", output_filename, ":", e)
 		exit()
+	if not os.path.exists(input_filename):
+		print(f"==== INPUT {input_filename} no longer exists.")
+		return
 
 	print("===============AUTOENCODE===============")
 	print("==== INPUT:", input_filename)
