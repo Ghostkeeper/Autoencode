@@ -201,6 +201,8 @@ def process(input_filename, output_filename, preset):
 def clean(files):
 	"""Cleans up the changes we made after everything is done."""
 	for file in files:
+		if os.path.isdir(file):
+			shutil.rmtree(file)
 		try:
 			os.remove(file)
 		except Exception as e:
