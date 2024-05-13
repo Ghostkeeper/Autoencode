@@ -2,5 +2,5 @@ This repository contains some scripts running on my server that allows me to enc
 
 Dependencies:
 * Running on Ubuntu 22.04 Server
-* `sudo apt install mkvtoolnix opus-tools ffmpeg x265 mediainfo lsdvd mplayer`
+* `sudo apt install mkvtoolnix opus-tools ffmpeg x265 mediainfo lsdvd mplayer libbluray-bin`
 * VapourSynth: http://www.vapoursynth.com/doc/installation.html
