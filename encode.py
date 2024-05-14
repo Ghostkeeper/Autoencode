@@ -68,8 +68,36 @@ def process(input_filename, output_filename, preset):
 					print("Skipping {input_filename} because it's not the right BDMV file.".format(input_filename=input_filename))
 				else:
 					split_bluray(os.path.dirname(os.path.dirname(input_filename)))
-					# After splitting the blu-ray, delete all original blu-ray files. Instead we'll process the split versions.
+					#After splitting the blu-ray, delete all original blu-ray files. Instead we'll process the split versions.
 					dirty_files.append(os.path.dirname(input_filename))
+			elif extension == ".m2ts":
+				all_paths = [input_filename]
+				if os.path.exists(os.path.join(os.path.dirname(os.path.dirname(input_filename)), "index.bdmv")):
+					#If there is an index.bdmv file, skip all .m2ts files and process that one instead as titles.
+					print("Skipping {input_filename} because there is an index.bdmv file with titles.".format(input_filename=input_filename))
+				else:
+					#Demuxing.
+					tracks = extract_m2ts(input_filename, guid)
+					dirty_files = [trk.file_name for trk in tracks]
+					for track_metadata in tracks:
+						if track_metadata.codec == "ac3":
+							original_filename = track_metadata.file_name
+							encode_flac(track_metadata)
+							if os.path.exists(original_filename):
+								os.remove(original_filename)
+							encode_opus(track_metadata)
+							dirty_files.append(track_metadata.file_name)
+						elif track_metadata.codec == "mpg":
+							encode_h265(track_metadata, preset)
+							dirty_files.append(track_metadata.file_name)
+						elif track_metadata.codec == "sup":
+							pass #Leave image-encoded subs as-is for now.
+						else:
+							print("Unknown codec:", track_metadata.codec)
+					#Muxing.
+					mux_mkv(tracks, [], guid, input_filename)
+					shutil.move(guid + "-out.mkv", os.path.splitext(output_filename)[0] + ".mkv")
+					dirty_files += all_paths
 			else:
 				raise Exception("Unknown file extension for HD: {extension}".format(extension=extension))
 
