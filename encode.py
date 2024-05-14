@@ -262,7 +262,7 @@ def split_bluray(in_directory):
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0:
-		raise Exception("Calling bd_list_title resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+		raise Exception("Calling bd_list_titles resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
 	cout = cout.decode("Latin-1")
 	lines = cout.split("\n")
@@ -277,13 +277,13 @@ def split_bluray(in_directory):
 				anglepart = ""
 				if num_angles > 1:
 					anglepart = "-" + str(this_angle + 1)
-				extract_command = ["mplayer", "br://" + title_nr, "-bluray-device", in_directory, "-bluray-angle", str(this_angle + 1), "-dumpstream", "-dumpfile", os.path.join(in_directory, "title" + title_nr + anglepart + ".m2ts")]
+				extract_command = ["bd_splice", "-t", title_nr, "-a", str(this_angle + 1), in_directory, os.path.join(in_directory, "title" + title_nr + anglepart + ".m2ts")]
 				print(extract_command)
 				process = subprocess.Popen(extract_command, stdout=subprocess.PIPE)
 				(cout, cerr) = process.communicate()
 				exit_code = process.wait()
 				if exit_code != 0:
-					raise Exception("Calling mplayer resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+					raise Exception("Calling bd_splice resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
 def extract_mkv(in_mkv, guid):
 	"""Extracts an MKV file into its components."""
