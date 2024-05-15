@@ -24,6 +24,9 @@ def process(input_filename, output_filename, preset):
 	except Exception as e:
 		print("Could really not make output directory for file", output_filename, ":", e)
 		exit()
+	if not os.path.exists(input_filename):
+		print(f"==== INPUT {input_filename} no longer exists.")
+		return
 
 	print("===============AUTOENCODE===============")
 	print("==== INPUT:", input_filename)
@@ -59,6 +62,45 @@ def process(input_filename, output_filename, preset):
 				shutil.move(guid + "-out.mkv", output_filename)
 			else:
 				raise Exception("Unknown file extension for UHD or HDAnime: {extension}".format(extension=extension))
+		elif preset == "hd":
+			if extension == ".bdmv":
+				if os.path.basename(input_filename) != "index.bdmv" or os.path.basename(os.path.dirname(input_filename)) != "BDMV":
+					print("Skipping {input_filename} because it's not the right BDMV file.".format(input_filename=input_filename))
+				else:
+					split_bluray(os.path.dirname(os.path.dirname(input_filename)))
+					#After splitting the blu-ray, delete all original blu-ray files. Instead we'll process the split versions.
+					dirty_files.append(os.path.dirname(input_filename))
+			elif extension == ".m2ts":
+				all_paths = [input_filename]
+				if os.path.exists(os.path.join(os.path.dirname(os.path.dirname(input_filename)), "index.bdmv")):
+					#If there is an index.bdmv file, skip all .m2ts files and process that one instead as titles.
+					print("Skipping {input_filename} because there is an index.bdmv file with titles.".format(input_filename=input_filename))
+				else:
+					#Demuxing.
+					tracks = extract_m2ts(input_filename, guid)
+					dirty_files = [trk.file_name for trk in tracks]
+					for track_metadata in tracks:
+						if track_metadata.codec == "ac3":
+							original_filename = track_metadata.file_name
+							encode_flac(track_metadata)
+							if os.path.exists(original_filename):
+								os.remove(original_filename)
+							encode_opus(track_metadata)
+							dirty_files.append(track_metadata.file_name)
+						elif track_metadata.codec == "mpg":
+							encode_h265(track_metadata, preset)
+							dirty_files.append(track_metadata.file_name)
+						elif track_metadata.codec == "sup":
+							pass #Leave image-encoded subs as-is for now.
+						else:
+							print("Unknown codec:", track_metadata.codec)
+					#Muxing.
+					mux_mkv(tracks, [], guid, input_filename)
+					shutil.move(guid + "-out.mkv", os.path.splitext(output_filename)[0] + ".mkv")
+					dirty_files += all_paths
+			else:
+				raise Exception("Unknown file extension for HD: {extension}".format(extension=extension))
+
 		elif preset == "dvd":
 			if extension == ".vob":
 				input_ffmpegname = None
@@ -198,6 +240,8 @@ def process(input_filename, output_filename, preset):
 def clean(files):
 	"""Cleans up the changes we made after everything is done."""
 	for file in files:
+		if os.path.isdir(file):
+			shutil.rmtree(file)
 		try:
 			os.remove(file)
 		except Exception as e:
@@ -214,7 +258,7 @@ def split_dvd(in_directory):
 	if exit_code != 0:
 		raise Exception("Calling lsdvd resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
-	cout = cout.decode("utf-8")
+	cout = cout.decode("Latin-1")
 	lines = cout.split("\n")
 	for line_nr, line in enumerate(lines):
 		if line.startswith("Title: "):
@@ -236,6 +280,38 @@ def split_dvd(in_directory):
 				exit_code = process.wait()
 				if exit_code != 0:
 					raise Exception("Calling mplayer resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+
+def split_bluray(in_directory):
+	if os.path.exists(os.path.join(in_directory, "title1.m2ts")):
+		raise Exception("Already extracted a blu-ray here. Will not override.")
+	list_command = ["bd_list_titles", in_directory]
+	print(list_command)
+	process = subprocess.Popen(list_command, stdout=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0:
+		raise Exception("Calling bd_list_titles resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+
+	cout = cout.decode("Latin-1")
+	lines = cout.split("\n")
+	for line in lines:
+		if line.startswith("index:"):
+			title_pos = len("index:")
+			angles_pos = len("index: XXX duration: XX:XX:XX chapters: XXX angles:")
+			title_nr = str(int(line[title_pos:title_pos + 4].strip()))
+			num_angles = int(line[angles_pos:angles_pos + 3].strip())
+
+			for this_angle in range(num_angles):
+				anglepart = ""
+				if num_angles > 1:
+					anglepart = "-" + str(this_angle + 1)
+				extract_command = ["bd_splice", "-t", title_nr, "-a", str(this_angle + 1), in_directory, os.path.join(in_directory, "title" + title_nr + anglepart + ".m2ts")]
+				print(extract_command)
+				process = subprocess.Popen(extract_command, stdout=subprocess.PIPE)
+				(cout, cerr) = process.communicate()
+				exit_code = process.wait()
+				if exit_code != 0:
+					raise Exception("Calling bd_splice resulted in exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
 def extract_mkv(in_mkv, guid):
 	"""Extracts an MKV file into its components."""
@@ -413,6 +489,9 @@ def extract_video_frames(in_vid):
 		new_track.codec = "jpg"
 		new_track.file_name = image
 		tracks.append(new_track)
+
+		#Remove the temporary file.
+		os.remove(image)
 
 	return tracks
 
