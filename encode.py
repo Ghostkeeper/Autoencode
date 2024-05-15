@@ -428,7 +428,7 @@ def encode_flac(track_metadata):
 	"""
 	print("---- Encoding", track_metadata.file_name, "to FLAC...")
 	new_file_name = track_metadata.file_name + ".flac"
-	ffmpeg("-i", track_metadata.file_name, "-c:a", "flac", "-compression_level", "12", "-lpc_passes", "8", "-lpc_type", "3", "-threads", "12", new_file_name)
+	ffmpeg("-i", track_metadata.file_name, "-c:a", "flac", "-compression_level", "12", "-lpc_passes", "8", "-lpc_type", "3", "-threads", "24", new_file_name)
 
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "flac"
