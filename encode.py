@@ -90,7 +90,7 @@ def process(input_filename, output_filename, preset):
 						elif track_metadata.codec == "mpg":
 							encode_h265(track_metadata, preset)
 							dirty_files.append(track_metadata.file_name)
-						elif track_metadata.codec == "sup":
+						elif track_metadata.codec == "pgs":
 							pass #Leave image-encoded subs as-is for now.
 						else:
 							print("Unknown codec:", track_metadata.codec)
@@ -408,13 +408,65 @@ def extract_vob(in_vob, guid):
 		track_type = match.group(2)
 		track_codec = match.group(3)
 		new_track = track.Track()
-		new_track.from_vob(track_nr, track_type, track_codec, is_interlaced, field_order, pixel_aspect_ratio)
+		new_track.from_ffmpeg(track_nr, track_type, track_codec, is_interlaced, field_order, pixel_aspect_ratio)
 		new_track.file_name = guid + "-T" + str(new_track.track_nr) + "." + new_track.codec
 		if new_track.type != "unknown":
 			tracks.append(new_track)
 
 	#Generate the parameters to pass to ffmpeg.
 	track_params = ["-probesize", "10M", "-analyzeduration", "50000000", "-i", in_vob]
+	for track_metadata in tracks:
+		track_params.append("-map")
+		track_params.append("0:" + str(track_metadata.track_nr))
+		track_params.append("-c")
+		track_params.append("copy")
+		track_params.append(track_metadata.file_name)
+
+	#Extract all tracks.
+	print("---- Extracting tracks...")
+	ffmpeg(*track_params)
+
+	return tracks
+
+def extract_m2ts(in_m2ts, guid):
+	"""Extracts an M2TS file into audio and video components."""
+	#Detect interlacing.
+	mediainfo_command = "mediainfo --Inform='Video;%Width%,%Height%,%ScanType%,%ScanOrder%,%PixelAspectRatio%,%Standard%' \"" + in_m2ts + "\""
+	print(mediainfo_command)
+	process = subprocess.Popen(mediainfo_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0:
+		raise Exception("Calling Mediainfo on {in_m2ts} failed with exit code {exit_code}.".format(in_m2ts=in_m2ts, exit_code=exit_code))
+	mediainfo_parts = cout.decode("utf-8").split(",")
+	is_interlaced = mediainfo_parts[2] == "Interlaced"
+	field_order = mediainfo_parts[3].lower().strip()
+	print("Interlace detection:", is_interlaced, field_order, "(", mediainfo_parts, ")")
+	pixel_aspect_ratio = float(mediainfo_parts[4])
+	stream_width = int(float(mediainfo_parts[0]) * pixel_aspect_ratio)
+	stream_height = int(mediainfo_parts[1])
+	print("Pixel aspect ratio:", pixel_aspect_ratio)
+
+	ffmpeg_command = ["ffmpeg", "-probesize", "10M", "-analyzeduration", "50000000", "-i", in_m2ts]
+	print(ffmpeg_command)
+	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	process.wait() #Ignore the exit code. It always fails.
+	m2tsinfo = cerr.decode("utf-8")
+	m2tsinfo = re.sub(r"\(.*?\)", "", m2tsinfo)  # Remove parts between brackets. It messes up parsing.
+	tracks = []
+	for match in re.finditer(r"  Stream #0:(\d+)\[0x[0-9a-f]+\]: (\w+): ([^\n]+)", m2tsinfo):
+		track_nr = match.group(1)
+		track_type = match.group(2)
+		track_codec = match.group(3)
+		new_track = track.Track()
+		new_track.from_ffmpeg(track_nr, track_type, track_codec, is_interlaced, field_order, pixel_aspect_ratio)
+		new_track.file_name = guid + "-T" + str(new_track.track_nr) + "." + new_track.codec
+		if new_track.type != "unknown":
+			tracks.append(new_track)
+
+	#Generate the parameters to pass to ffmpeg.
+	track_params = ["-probesize", "10M", "-analyzeduration", "50000000", "-i", in_m2ts]
 	for track_metadata in tracks:
 		track_params.append("-map")
 		track_params.append("0:" + str(track_metadata.track_nr))

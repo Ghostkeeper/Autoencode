@@ -163,7 +163,7 @@ class Track:
 				except ValueError: #Not an integer.
 					pass
 
-	def from_vob(self, track_nr, track_type, track_codec, interlaced=False, interlace_field_order="tff", pixel_aspect_ratio=1.0):
+	def from_ffmpeg(self, track_nr, track_type, track_codec, interlaced=False, interlace_field_order="tff", pixel_aspect_ratio=1.0):
 		self.track_nr = int(track_nr)
 
 		type_translation = {
@@ -189,7 +189,8 @@ class Track:
 		codec_parts = track_codec.split(", ")
 		codec_translation = {
 			"ac3": "ac3",
-			"mpeg2video": "mpg"
+			"mpeg2video": "mpg",
+			"hdmv_pgs_subtitle": "pgs"
 		}
 		self.codec = codec_translation.get(codec_parts[0].strip(), "unknown")
 		if self.codec == "ac3":
