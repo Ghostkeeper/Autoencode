@@ -197,7 +197,7 @@ class Track:
 			self.frequency = int(codec_parts[1][:-3])  # Remove " Hz"
 			self.channels = 2 if codec_parts[2] == "stereo" else (1 if codec_parts[2] == "mono" else 0)
 		elif self.codec == "mpg":
-			fps_match = re.findall("\d+ fps", track_codec)
+			fps_match = re.findall("[\.\d]+ fps", track_codec)
 			if fps_match:
 				self.fps = float(fps_match[0][:-4])  # Remove " fps"
 				if self.interlaced:
