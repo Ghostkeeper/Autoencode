@@ -100,8 +100,7 @@ def process(input_filename, output_filename, preset):
 					dirty_files += all_paths
 			else:
 				raise Exception("Unknown file extension for HD: {extension}".format(extension=extension))
-
-		elif preset == "dvd":
+		elif preset == "dvd" or preset == "dedup":
 			if extension == ".vob":
 				input_ffmpegname = None
 				
@@ -682,9 +681,19 @@ def encode_h265(track_metadata, preset):
 			"bitrate": "3500",
 			"deblock": "-2:0"
 		},
+		"hd": {
+			"preset": "7",
+			"bitrate": "1400",
+			"deblock": "-2:0"
+		},
 		"dvd": {
 			"preset": "8",
 			"bitrate": "600",
+			"deblock": "-2:0"
+		},
+		"dedup": {
+			"preset": "8",
+			"bitrate": "400",
 			"deblock": "-2:0"
 		}
 	}
@@ -709,6 +718,15 @@ def encode_h265(track_metadata, preset):
 			num_frames *= 2
 		else:
 			vsscript = "dvd_noninterlaced"
+	elif preset == "dedup":
+		if track_metadata.interlaced:
+			if track_metadata.interlace_field_order == "tff":
+				vsscript = "dedup_tff"
+			else:
+				vsscript = "dedup_bff"
+			num_frames *= 2
+		else:
+			vsscript = "dedup_noninterlaced"
 	else:
 		vsscript = preset
 	script_source = vsscript + ".vpy"
