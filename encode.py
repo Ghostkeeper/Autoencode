@@ -588,7 +588,7 @@ def encode_h265(track_metadata, preset):
 		with open(vapoursynth_script, "w") as f:
 			f.write(script)
 
-		vspipe_command = ["vspipe", "--y4m", vapoursynth_script, "-"]
+		vspipe_command = ["vspipe", "-c", "y4m", vapoursynth_script, "-"]
 		x265_command = [
 			"x265",
 			"-",
