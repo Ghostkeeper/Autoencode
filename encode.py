@@ -303,7 +303,7 @@ def extract_vob(in_vob, guid):
 		probe_vob = in_vob
 
 	#Detect interlacing.
-	mediainfo_command = "mediainfo --Inform='Video;%ScanType%,%ScanOrder%,%PixelAspectRatio%,%Standard%' \"" + probe_vob + "\""
+	mediainfo_command = "mediainfo --Inform='Video;%Width%,%Height%,%ScanType%,%ScanOrder%,%PixelAspectRatio%,%Standard%' \"" + probe_vob + "\""
 	print(mediainfo_command)
 	process = subprocess.Popen(mediainfo_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
@@ -311,14 +311,12 @@ def extract_vob(in_vob, guid):
 	if exit_code != 0:
 		raise Exception("Calling Mediainfo on {probe_vob} failed with exit code {exit_code}.".format(probe_vob=probe_vob, exit_code=exit_code))
 	mediainfo_parts = cout.decode("utf-8").split(",")
-	is_interlaced = mediainfo_parts[0] == "Interlaced"
-	field_order = mediainfo_parts[1].lower().strip()
+	is_interlaced = mediainfo_parts[2] == "Interlaced"
+	field_order = mediainfo_parts[3].lower().strip()
 	print("Interlace detection:", is_interlaced, field_order, "(", mediainfo_parts, ")")
-	pixel_aspect_ratio = float(mediainfo_parts[2])
-	standard = mediainfo_parts[3]
-	print("Standard:", standard)
-	if standard.strip() == "PAL":
-		pixel_aspect_ratio = 1.42222  # Sometimes the PAR is wrong for some reason. Standard is more reliable.
+	pixel_aspect_ratio = float(mediainfo_parts[4])
+	stream_width = int(float(mediainfo_parts[0]) * pixel_aspect_ratio)
+	stream_height = int(mediainfo_parts[1])
 	print("Pixel aspect ratio:", pixel_aspect_ratio)
 
 	ffmpeg_command = ["ffmpeg", "-probesize", "10M", "-analyzeduration", "50000000", "-i", in_vob]
