@@ -468,7 +468,7 @@ def encode_opus(track_metadata):
 	- PCM"""
 	print("---- Encoding", track_metadata.file_name, "to Opus...")
 	new_file_name = track_metadata.file_name + ".opus"
-	opusenc_command = ["opusenc", "--bitrate", "128", "--vbr", "--comp", "10", "--framesize", "60", track_metadata.file_name, new_file_name]
+	opusenc_command = ["opusenc", "--bitrate", "64", "--vbr", "--comp", "10", "--framesize", "60", track_metadata.file_name, new_file_name]
 	print(opusenc_command)
 	process = subprocess.Popen(opusenc_command, stdout=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
