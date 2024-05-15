@@ -11,8 +11,19 @@ import encode  # The module that will do the actual work of transcoding.
 def rescan(directory, todo):
 	for root, dirs, files in os.walk(directory):
 		dirs[:] = [d for d in dirs if os.path.join(root, d) != os.path.join(directory, "output")]  # Ignore output directory.
-		for file in files:
-			todo.add(os.path.join(root, file))
+		for f in files:
+			path = os.path.join(root, f)
+			if path not in todo:
+				todo.append(path)
+
+	filesizes = {}
+	for path in todo:
+		try:
+			filesizes[path] = os.path.getsize(path)
+		except FileNotFoundError:
+			pass
+	#todo[:] = sorted(todo, key=lambda p: -filesizes[p])
+	todo[:] = reversed(sorted(todo))
 
 def process_thread(prefix, todo):
 	while True:  # Wait indefinitely for files to arrive in this thread.
@@ -32,7 +43,7 @@ if __name__ == "__main__":
 	parser.add_argument("watch_directory", metavar="directory", type=str, help="The directory to transcode files in.")
 	args = parser.parse_args()
 
-	todo = set()
+	todo = list()
 
 	consumer_thread = threading.Thread(target=functools.partial(process_thread, args.watch_directory, todo))
 	consumer_thread.start()
