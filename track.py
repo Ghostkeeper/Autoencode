@@ -189,14 +189,19 @@ class Track:
 		codec_parts = track_codec.split(", ")
 		codec_translation = {
 			"ac3": "ac3",
+			"h264": "h264",
 			"mpeg2video": "mpg",
 			"hdmv_pgs_subtitle": "pgs"
 		}
 		self.codec = codec_translation.get(codec_parts[0].strip(), "unknown")
 		if self.codec == "ac3":
-			self.frequency = int(codec_parts[1][:-3])  # Remove " Hz"
-			self.channels = 2 if codec_parts[2] == "stereo" else (1 if codec_parts[2] == "mono" else 0)
-		elif self.codec == "mpg":
+			if len(codec_parts) >= 2:
+				frequency_str = codec_parts[1][:-3]
+				if frequency_str.endswith(" Hz"):
+					self.frequency = int(codec_parts[1][:-3])  # Remove " Hz"
+			if len(codec_parts) >= 3:
+				self.channels = 2 if codec_parts[2] == "stereo" else (1 if codec_parts[2] == "mono" else 0)
+		elif self.codec in ["mpg", "h264"]:
 			fps_match = re.findall("[\.\d]+ fps", track_codec)
 			if fps_match:
 				self.fps = float(fps_match[0][:-4])  # Remove " fps"
