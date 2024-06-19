@@ -87,7 +87,7 @@ def process(input_filename, output_filename, preset):
 								os.remove(original_filename)
 							encode_opus(track_metadata)
 							dirty_files.append(track_metadata.file_name)
-						elif track_metadata.codec == "mpg":
+						elif track_metadata.codec in ["mpg", "h264"]:
 							encode_h265(track_metadata, preset)
 							dirty_files.append(track_metadata.file_name)
 						elif track_metadata.codec == "pgs":
@@ -187,7 +187,7 @@ def process(input_filename, output_filename, preset):
 				dirty_files = [input_filename]
 				encode_jpg(trk)
 				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".jpg")
-			elif extension in [".mkv", ".vob"]:
+			elif extension in [".mkv", ".vob", ".m2ts"]:
 				frames = extract_video_frames(input_filename)
 				dirty_files = [input_filename]
 				output_directory = os.path.dirname(output_filename)
@@ -727,6 +727,14 @@ def encode_h265(track_metadata, preset):
 			num_frames *= 2
 		else:
 			vsscript = "dedup_noninterlaced"
+	elif preset == "hd":
+		if track_metadata.interlaced:
+			if track_metadata.interlace_field_order == "tff":
+				vsscript = "hd_tff"
+			else:
+				vsscript = "hd_bff"
+		else:
+			vsscript = "hd_noninterlaced"
 	else:
 		vsscript = preset
 	script_source = vsscript + ".vpy"
