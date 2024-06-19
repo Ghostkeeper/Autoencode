@@ -661,16 +661,21 @@ def encode_h265(track_metadata, preset):
 	vapoursynth_script = track_metadata.file_name + ".vpy"
 
 	#Get the number of frames, to display progress.
-	mediainfo_command = "mediainfo --Inform='Video;%FrameCount%' \"" + track_metadata.file_name + "\""
-	print(mediainfo_command)
-	process = subprocess.Popen(mediainfo_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	print("----- frame rate:", track_metadata.fps)
+	frame_count_command = "ffprobe -show_streams -count_frames -i \"" + track_metadata.file_name + "\""
+	print(frame_count_command)
+	process = subprocess.Popen(frame_count_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0:
-		print("Calling Mediainfo on {file_name} failed with exit code {exit_code}.".format(file_name=track_metadata.file_name, exit_code=exit_code))
+		print("Calling FFProbe on {file_name} failed with exit code {exit_code}.".format(file_name=track_metadata.file_name, exit_code=exit_code))
 		num_frames = 0
 	else:
-		num_frames = int(cout.decode("utf-8"))
+		cout = cout.decode("utf-8")
+		for line in cout.split("\n"):
+			if line.startswith("nb_read_frames="):
+				num_frames = int(line[len("nb_read_frames="):])
+				break
 
 	x265_presets = {
 		"hdanime": {
