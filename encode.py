@@ -492,18 +492,18 @@ def extract_video_frames(in_vid):
 	:return: A list of tracks, one for each frame, to encode further.
 	"""
 	if in_vid.startswith("concat:"):
-		probe_vob = in_vid.split("|")[-1] #Can only take mediainfo from one file at a time. Pick the last one.
+		probe_vid = in_vid.split("|")[-1] #Can only take mediainfo from one file at a time. Pick the last one.
 	else:
-		probe_vob = in_vid
+		probe_vid = in_vid
 
 	#Detect aspect ratio.
-	mediainfo_command = "mediainfo --Inform='Video;%Width%,%Height%,%PixelAspectRatio%,%Standard%' \"" + probe_vob + "\""
+	mediainfo_command = "mediainfo --Inform='Video;%Width%,%Height%,%PixelAspectRatio%,%Standard%' \"" + probe_vid + "\""
 	print(mediainfo_command)
 	process = subprocess.Popen(mediainfo_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0:
-		raise Exception("Calling Mediainfo on {probe_vob} failed with exit code {exit_code}.".format(probe_vob=probe_vob, exit_code=exit_code))
+		raise Exception("Calling Mediainfo on {probe_vid} failed with exit code {exit_code}.".format(probe_vid=probe_vid, exit_code=exit_code))
 	mediainfo_parts = cout.decode("utf-8").split(",")
 	width = int(mediainfo_parts[0])
 	height = int(mediainfo_parts[1])
@@ -514,7 +514,7 @@ def extract_video_frames(in_vid):
 		pixel_aspect_ratio = 1.42222  # Sometimes the PAR is wrong for some reason. Standard is more reliable.
 	print("Pixel aspect ratio:", pixel_aspect_ratio)
 
-	new_file_name = probe_vob + "-%05d.png"
+	new_file_name = probe_vid + "-%05d.png"
 	scale_filter = "scale={width}x{height}".format(width=str(int(width*pixel_aspect_ratio)), height=str(height))
 	ffmpeg_command = ["ffmpeg", "-i", in_vid, "-vsync", "0", "-vf", scale_filter, new_file_name]
 	print(ffmpeg_command)
@@ -522,9 +522,9 @@ def extract_video_frames(in_vid):
 	(cout, cerr) = process.communicate()
 	exit_code = process.wait()
 	if exit_code != 0:
-		raise Exception("Calling FFMPEG on VOB failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
+		raise Exception("Calling FFMPEG to split into frames failed with exit code {exit_code}. CERR: {cerr}".format(exit_code=exit_code, cerr=cout.decode("utf-8")))
 
-	images = glob.glob(probe_vob + "-*.png")
+	images = glob.glob(probe_vid + "-*.png")
 	tracks = []
 	for image in images:
 		#Crop each image.
