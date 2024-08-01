@@ -758,7 +758,7 @@ def encode_h265(track_metadata, preset):
 			"x265",
 			"-",
 			"--y4m",
-			"--fps", str(track_metadata.fps),
+			#"--fps", str(track_metadata.fps),
 			"--sar", track_metadata.pixel_aspect_ratio,
 			"--preset", x265_presets[preset]["preset"],
 			"--bitrate", x265_presets[preset]["bitrate"],
