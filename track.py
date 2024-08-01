@@ -196,18 +196,18 @@ class Track:
 		self.codec = codec_translation.get(codec_parts[0].strip(), "unknown")
 		if self.codec == "ac3":
 			if len(codec_parts) >= 2:
-				frequency_str = codec_parts[1][:-3]
+				frequency_str = codec_parts[1]
 				if frequency_str.endswith(" Hz"):
 					self.frequency = int(codec_parts[1][:-3])  # Remove " Hz"
 			if len(codec_parts) >= 3:
 				self.channels = 2 if codec_parts[2] == "stereo" else (1 if codec_parts[2] == "mono" else 0)
 		elif self.codec in ["mpg", "h264"]:
-			fps_match = re.findall("[\.\d]+ fps", track_codec)
+			fps_match = re.findall(r"[\.\d]+ fps", track_codec)
 			if fps_match:
 				self.fps = float(fps_match[0][:-4])  # Remove " fps"
 				if self.interlaced:
 					self.fps *= 2
-			size_match = re.findall("\d+x\d+", track_codec)
+			size_match = re.findall(r"\d+x\d+", track_codec)
 			if size_match:
 				size_parts = size_match[0].split("x")
 				self.display_width = int(size_parts[0])

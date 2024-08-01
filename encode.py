@@ -461,6 +461,7 @@ def extract_m2ts(in_m2ts, guid):
 		new_track = track.Track()
 		new_track.from_ffmpeg(track_nr, track_type, track_codec, is_interlaced, field_order, pixel_aspect_ratio)
 		if new_track.type == "audio" and new_track.frequency == 0:
+			print(f"Skipping audio track {track_nr} because frequency is 0.")
 			continue  # Audio contains no audio data.
 		new_track.file_name = guid + "-T" + str(new_track.track_nr) + "." + new_track.codec
 		if new_track.type != "unknown":
