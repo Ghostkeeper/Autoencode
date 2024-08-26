@@ -87,7 +87,7 @@ def process(input_filename, output_filename, preset):
 								os.remove(original_filename)
 							encode_opus(track_metadata)
 							dirty_files.append(track_metadata.file_name)
-						elif track_metadata.codec in ["mpg", "h264"]:
+						elif track_metadata.codec in ["mpg", "h264", "vc1"]:
 							encode_h265(track_metadata, preset)
 							dirty_files.append(track_metadata.file_name)
 						elif track_metadata.codec == "pgs":
@@ -662,7 +662,6 @@ def encode_h265(track_metadata, preset):
 	vapoursynth_script = track_metadata.file_name + ".vpy"
 
 	#Get the number of frames, to display progress.
-	print("----- frame rate:", track_metadata.fps)
 	frame_count_command = "ffprobe -show_streams -count_frames -i \"" + track_metadata.file_name + "\""
 	print(frame_count_command)
 	process = subprocess.Popen(frame_count_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -768,6 +767,9 @@ def encode_h265(track_metadata, preset):
 			"--aq-strength", "0.5",
 			"--stats", stats_file
 		]
+		if not track_metadata.interlaced:
+			x265_command.insert(3, "--fps")
+			x265_command.insert(4, str(track_metadata.fps))
 		if num_frames != 0:
 			x265_command.append("--frames")
 			x265_command.append(str(num_frames))

@@ -191,6 +191,7 @@ class Track:
 			"ac3": "ac3",
 			"h264": "h264",
 			"mpeg2video": "mpg",
+			"vc1": "vc1",
 			"hdmv_pgs_subtitle": "pgs"
 		}
 		self.codec = codec_translation.get(codec_parts[0].strip(), "unknown")
@@ -201,7 +202,7 @@ class Track:
 					self.frequency = int(codec_parts[1][:-3])  # Remove " Hz"
 			if len(codec_parts) >= 3:
 				self.channels = 2 if codec_parts[2] == "stereo" else (1 if codec_parts[2] == "mono" else 0)
-		elif self.codec in ["mpg", "h264"]:
+		elif self.codec in ["mpg", "h264", "vc1"]:
 			fps_match = re.findall(r"[\.\d]+ fps", track_codec)
 			if fps_match:
 				self.fps = float(fps_match[0][:-4])  # Remove " fps"
