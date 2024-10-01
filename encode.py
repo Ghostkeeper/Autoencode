@@ -247,7 +247,7 @@ def clean(files):
 			print(e)
 
 def split_dvd(in_directory):
-	if os.path.exists(os.path.join(in_directory, "title1.VOB")):
+	if os.path.exists(os.path.join(in_directory, "title1.VOB")) or os.path.exists(os.path.join(in_directory, "title1-1.VOB")):
 		raise Exception("Already extracted a DVD here. Will not override.")
 	list_command = ["lsdvd", "-x", in_directory]
 	print(list_command)
