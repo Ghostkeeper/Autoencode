@@ -100,7 +100,7 @@ def process(input_filename, output_filename, preset):
 					dirty_files += all_paths
 			else:
 				raise Exception("Unknown file extension for HD: {extension}".format(extension=extension))
-		elif preset == "dvd" or preset == "dedup":
+		elif preset == "dvd" or preset == "dedup" or preset == "dvd-lo":
 			if extension == ".vob":
 				input_ffmpegname = None
 				
@@ -698,6 +698,11 @@ def encode_h265(track_metadata, preset):
 			"bitrate": "600",
 			"deblock": "-2:0"
 		},
+		"dvd-lo": {
+			"preset": "8",
+			"bitrate": "200",
+			"deblock": "-2:0"
+		},
 		"dedup": {
 			"preset": "8",
 			"bitrate": "400",
@@ -716,7 +721,7 @@ def encode_h265(track_metadata, preset):
 	]
 
 	#Generate VapourSynth script.
-	if preset == "dvd":
+	if preset == "dvd" or preset == "dvd-lo":
 		if track_metadata.interlaced:
 			if track_metadata.interlace_field_order == "tff":
 				vsscript = "dvd_tff"
