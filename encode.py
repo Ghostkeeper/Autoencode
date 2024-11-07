@@ -584,6 +584,23 @@ def encode_flac(track_metadata):
 	track_metadata.file_name = new_file_name
 	track_metadata.codec = "flac"
 
+def convert_jpg(track_metadata):
+	"""
+	Converts an image to JPG and optimises that JPG.
+	"""
+	print("---- Converting", track_metadata.file_name, "to JPG...")
+	new_file_name = track_metadata.file_name + ".jpg"
+	imagemagick_command = ["convert", track_metadata.file_name, "-quality", "89", new_file_name]
+	print(imagemagick_command)
+	process = subprocess.Popen(imagemagick_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(cout, cerr) = process.communicate()
+	exit_code = process.wait()
+	if exit_code != 0:
+		raise Exception(f"Calling ImageMagick on {track_metadata.filename} failed with exit code {exit_code}. CERR: {cout.decode('utf-8')}")
+	track_metadata.file_name = new_file_name
+	track_metadata.codec = "jpg"
+	encode_jpg(track_metadata)
+
 def encode_jpg(track_metadata):
 	"""
 	Optimises a JPG image.
