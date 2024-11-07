@@ -101,7 +101,7 @@ def process(input_filename, output_filename, preset):
 			else:
 				raise Exception("Unknown file extension for HD: {extension}".format(extension=extension))
 		elif preset == "dvd" or preset == "dedup" or preset == "dvd-lo":
-			if extension == ".vob":
+			if extension == ".vob" or extension == ".m2ts":
 				input_ffmpegname = None
 				
 				all_paths = [input_filename]
@@ -141,7 +141,12 @@ def process(input_filename, output_filename, preset):
 
 				if input_ffmpegname is not None:
 					#Demuxing.
-					tracks = extract_vob(input_ffmpegname, guid)
+					if extension == ".vob":
+						tracks = extract_vob(input_ffmpegname, guid)
+					elif extension == ".m2ts":
+						tracks = extract_m2ts(input_ffmpegname, guid)
+					else:
+						raise Exception("Did you forget to add an extract function for the new container format?")
 					dirty_files = [trk.file_name for trk in tracks]
 					for track_metadata in tracks:
 						if track_metadata.codec == "ac3":
@@ -151,7 +156,7 @@ def process(input_filename, output_filename, preset):
 								os.remove(original_filename)
 							encode_opus(track_metadata)
 							dirty_files.append(track_metadata.file_name)
-						elif track_metadata.codec == "mpg":
+						elif track_metadata.codec in ["mpg", "h264", "vc1"]:
 							encode_h265(track_metadata, preset)
 							dirty_files.append(track_metadata.file_name)
 						elif track_metadata.codec == "sub":
