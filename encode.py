@@ -548,7 +548,7 @@ def extract_video_frames(in_vid):
 	for image in images:
 		#Crop each image.
 		output_file = image[:-4] + ".jpg"
-		imagemagick_command = ["convert", image, "-bordercolor", "black", "-border", "1x1", "-fuzz", "10%", "-trim", output_file]
+		imagemagick_command = ["convert", image, "-bordercolor", "black", "-border", "1x1", "-fuzz", "10%", "-trim", "-quality", "89", output_file]
 		print(imagemagick_command)
 		process = subprocess.Popen(imagemagick_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		(cout, cerr) = process.communicate()
