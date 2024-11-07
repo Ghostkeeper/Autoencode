@@ -465,6 +465,7 @@ def extract_m2ts(in_m2ts, guid):
 	process.wait() #Ignore the exit code. It always fails.
 	m2tsinfo = cerr.decode("utf-8")
 	m2tsinfo = re.sub(r"\(.*?\)", "", m2tsinfo)  # Remove parts between brackets. It messes up parsing.
+	m2tsinfo = m2tsinfo[:m2tsinfo.find("No Program")]  # Remove everything after "No Program" because it's not part of the main stream.
 	tracks = []
 	for match in re.finditer(r"  Stream #0:(\d+)\[0x[0-9a-f]+\]: (\w+): ([^\n]+)", m2tsinfo):
 		track_nr = match.group(1)
