@@ -192,6 +192,13 @@ def process(input_filename, output_filename, preset):
 				dirty_files = [input_filename]
 				encode_jpg(trk)
 				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".jpg")
+			elif extension in [".png"]:
+				trk = track.Track()
+				trk.file_name = input_filename
+				dirty_files = [input_filename]
+				convert_jpg(trk)
+				encode_jpg(trk)
+				shutil.move(trk.file_name, os.path.splitext(output_filename)[0] + ".jpg")
 			elif extension in [".mkv", ".vob", ".m2ts"]:
 				frames = extract_video_frames(input_filename)
 				dirty_files = [input_filename]
