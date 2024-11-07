@@ -189,13 +189,15 @@ class Track:
 		codec_parts = track_codec.split(", ")
 		codec_translation = {
 			"ac3": "ac3",
+			"dts": "dts",
+			"pcm_bluray": "pcm_bluray",
 			"h264": "h264",
 			"mpeg2video": "mpg",
 			"vc1": "vc1",
 			"hdmv_pgs_subtitle": "pgs"
 		}
 		self.codec = codec_translation.get(codec_parts[0].strip(), "unknown")
-		if self.codec == "ac3":
+		if self.codec in ["ac3", "flac", "dts", "pcm_bluray"]:
 			if len(codec_parts) >= 2:
 				frequency_str = codec_parts[1]
 				if frequency_str.endswith(" Hz"):

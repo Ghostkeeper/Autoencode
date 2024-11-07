@@ -80,7 +80,7 @@ def process(input_filename, output_filename, preset):
 					tracks = extract_m2ts(input_filename, guid)
 					dirty_files = [trk.file_name for trk in tracks]
 					for track_metadata in tracks:
-						if track_metadata.codec == "ac3":
+						if track_metadata.codec in ["flac", "ac3", "pcm_bluray", "dts"]:
 							original_filename = track_metadata.file_name
 							encode_flac(track_metadata)
 							if os.path.exists(original_filename):
@@ -470,10 +470,15 @@ def extract_m2ts(in_m2ts, guid):
 	#Generate the parameters to pass to ffmpeg.
 	track_params = ["-probesize", "10M", "-analyzeduration", "50000000", "-i", in_m2ts]
 	for track_metadata in tracks:
+		output_codec = "copy"
+		if track_metadata.codec == "pcm_bluray": #No output encoder for pcm_bluray.
+			output_codec = "flac"
+			track_metadata.codec = "flac"
+			track_metadata.file_name = track_metadata.file_name[:-len(".pcm_bluray")] + ".flac"
 		track_params.append("-map")
 		track_params.append("0:" + str(track_metadata.track_nr))
 		track_params.append("-c")
-		track_params.append("copy")
+		track_params.append(output_codec)
 		track_params.append(track_metadata.file_name)
 
 	#Extract all tracks.
