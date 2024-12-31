@@ -535,7 +535,9 @@ def extract_video_frames(in_vid):
 
 	new_file_name = probe_vid + "-%05d.png"
 	scale_filter = "scale={width}x{height}".format(width=str(int(width*pixel_aspect_ratio)), height=str(height))
-	ffmpeg_command = ["ffmpeg", "-i", in_vid, "-vsync", "0", "-vf", scale_filter, new_file_name]
+	decimate_filter = "mpdecimate"  # Remove duplicate frames, if any.
+	video_filters = ",".join([decimate_filter, scale_filter])
+	ffmpeg_command = ["ffmpeg", "-i", in_vid, "-vsync", "0", "-vf", video_filters, new_file_name]
 	print(ffmpeg_command)
 	process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(cout, cerr) = process.communicate()
